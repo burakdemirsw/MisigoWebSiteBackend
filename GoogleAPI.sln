@@ -1,0 +1,62 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.4.33205.214
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{1BA40551-15F6-40D6-B69D-C2ED7FCA3250}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GoogleAPI.Domain", "GoogleAPI.Domain\GoogleAPI.Domain.csproj", "{AE8E5E6D-60B2-4A4B-B8B0-CC607CDE720B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Presentation", "Presentation", "{8309EA55-A803-4BD7-A982-DCE1B47B6B15}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GooleAPI.Application", "GooleAPI.Application\GooleAPI.Application.csproj", "{3D3566E9-F6F1-4EDD-B4A7-A664B14C18D5}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Infrastructure", "Infrastructure", "{1E62FC26-AC9D-4E27-8E2D-F2B432B2AF64}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GooleAPI.Infrastructure", "GooleAPI.Infrastructure\GooleAPI.Infrastructure.csproj", "{6844E4A7-AC3E-49CD-BBFB-206CC3E5EA76}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GoogleAPI.Persistance", "GoogleAPI.Persistance\GoogleAPI.Persistance.csproj", "{E2E21A4B-13DC-482E-8276-A2BD0903CB4F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GoogleAPI.API", "GoogleAPI.API\GoogleAPI.API.csproj", "{31276298-3F45-40E7-9500-842FCD1EDAED}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{AE8E5E6D-60B2-4A4B-B8B0-CC607CDE720B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AE8E5E6D-60B2-4A4B-B8B0-CC607CDE720B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AE8E5E6D-60B2-4A4B-B8B0-CC607CDE720B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AE8E5E6D-60B2-4A4B-B8B0-CC607CDE720B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3D3566E9-F6F1-4EDD-B4A7-A664B14C18D5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3D3566E9-F6F1-4EDD-B4A7-A664B14C18D5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3D3566E9-F6F1-4EDD-B4A7-A664B14C18D5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3D3566E9-F6F1-4EDD-B4A7-A664B14C18D5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6844E4A7-AC3E-49CD-BBFB-206CC3E5EA76}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6844E4A7-AC3E-49CD-BBFB-206CC3E5EA76}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6844E4A7-AC3E-49CD-BBFB-206CC3E5EA76}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6844E4A7-AC3E-49CD-BBFB-206CC3E5EA76}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E2E21A4B-13DC-482E-8276-A2BD0903CB4F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E2E21A4B-13DC-482E-8276-A2BD0903CB4F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E2E21A4B-13DC-482E-8276-A2BD0903CB4F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E2E21A4B-13DC-482E-8276-A2BD0903CB4F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{31276298-3F45-40E7-9500-842FCD1EDAED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{31276298-3F45-40E7-9500-842FCD1EDAED}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{31276298-3F45-40E7-9500-842FCD1EDAED}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{31276298-3F45-40E7-9500-842FCD1EDAED}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{AE8E5E6D-60B2-4A4B-B8B0-CC607CDE720B} = {1BA40551-15F6-40D6-B69D-C2ED7FCA3250}
+		{3D3566E9-F6F1-4EDD-B4A7-A664B14C18D5} = {1BA40551-15F6-40D6-B69D-C2ED7FCA3250}
+		{6844E4A7-AC3E-49CD-BBFB-206CC3E5EA76} = {1E62FC26-AC9D-4E27-8E2D-F2B432B2AF64}
+		{E2E21A4B-13DC-482E-8276-A2BD0903CB4F} = {1E62FC26-AC9D-4E27-8E2D-F2B432B2AF64}
+		{31276298-3F45-40E7-9500-842FCD1EDAED} = {8309EA55-A803-4BD7-A982-DCE1B47B6B15}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {3DA7DE73-48C5-4069-A9F2-38717C3F6AA0}
+	EndGlobalSection
+EndGlobal
