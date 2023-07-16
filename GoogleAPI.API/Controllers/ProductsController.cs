@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace GoogleAPI.API.Controllers
 {
-    [Route("api/Product")]
+    [Route("[controller]")]
     [ApiController]
     public class ProductsController : ControllerBase
     {

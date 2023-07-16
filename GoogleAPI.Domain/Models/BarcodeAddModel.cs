@@ -22,18 +22,21 @@ namespace GoogleAPI.Domain.Models
     public class BarcodeModel
     {
 
+        public string ItemCode { get; set; }
+        public string ItemDim1Code { get; set; }
+        public string ColorCode { get; set; }
+
         public string Barcode { get; set; }
-        public string UrunKodu { get; set; }
         public string ItemDescription { get; set; }
-        public string Depo { get; set; }
-        public string RafNo { get; set; }
-        public string Parti { get; set; }
+        public string Warehouse { get; set; }
+        public string shelfno { get; set; }
+        public string Party { get; set; }
         public string AttributeCode { get; set; }
         public string PriceCurrency { get; set; }
         public decimal Price { get; set; }
-        public int Miktar { get; set; }
-        public string Resim { get; set; }
-        public string Resim2 { get; set; }
+        public int Quantity { get; set; }
+        public string Picture { get; set; }
+        public string Picture2 { get; set; }
 
     }
 }

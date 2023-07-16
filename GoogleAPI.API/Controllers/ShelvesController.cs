@@ -44,6 +44,31 @@ namespace GoogleAPI.API.Controllers
                 return BadRequest(ErrorTextBase + ex.Message);
             }
         }
+        [HttpGet("qr/{qrCode}")]
+        public IActionResult GetShelvesByQr(string? qrCode)
+        {
+            try
+            {
+                if (qrCode != "{qrCode}")
+                {
+                    List<ShelfModel> saleOrderModel = _context.ztShelves.FromSqlRaw($"select * from ztShelves where QrString = '{qrCode}'").AsEnumerable().ToList();
+
+                    return Ok(saleOrderModel);
+                }
+                else
+                {
+                    List<ShelfModel> saleOrderModel = _context.ztShelves.FromSqlRaw($"select * from ztShelves ").AsEnumerable().ToList();
+
+                    return Ok(saleOrderModel);
+                }
+
+            }
+            catch (Exception ex)
+            {
+
+                return BadRequest(ErrorTextBase + ex.Message);
+            }
+        }
 
         [HttpPost("Add")]
         public IActionResult AddShelf(ShelfModel model)

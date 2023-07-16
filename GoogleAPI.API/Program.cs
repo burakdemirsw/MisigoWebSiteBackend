@@ -9,16 +9,18 @@ builder.Services.AddCors(
         options.AddDefaultPolicy(
             policy =>
                 policy
-                    .WithOrigins("http://localhost:4200", "https://localhost:7178")
+                    .WithOrigins( "http://localhost:7178", "http://212.156.46.206:7178", "http://192.168.2.38:7178", "http://212.156.46.206:4200", "http://localhost:4200", "http://192.168.2.38:4200")
                     .AllowAnyHeader()
                     .AllowAnyMethod()
         )
 );
+
 builder.Services.AddControllers();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddApplicationInsightsTelemetry();
 
 var app = builder.Build();
 

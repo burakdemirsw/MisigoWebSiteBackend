@@ -11,6 +11,7 @@ namespace GoogleAPI.Domain.Models
     {
      
         public int Id { get; set; }
+        public int? PackageId { get; set; }
         public string? QrString { get; set; }
         public string? Warehouse { get; set; }
         public string? ShelfNo { get; set; }
