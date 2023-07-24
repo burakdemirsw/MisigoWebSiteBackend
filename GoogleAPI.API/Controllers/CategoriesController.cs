@@ -1,5 +1,5 @@
 ﻿using Antlr.Runtime.Tree;
-using GoogleAPI.Domain.Models;
+using GoogleAPI.Domain.Models.NEBIM.Category;
 using GoogleAPI.Persistance.Contexts;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;

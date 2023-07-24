@@ -5,11 +5,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace GoogleAPI.Domain.Models
+namespace GoogleAPI.Domain.Models.NEBIM.Shelf
 {
     public class ShelfModel
     {
-     
+
         public int Id { get; set; }
         public int? PackageId { get; set; }
         public string? QrString { get; set; }

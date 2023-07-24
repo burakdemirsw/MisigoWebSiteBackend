@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace GoogleAPI.Domain.Models
+namespace GoogleAPI.Domain.Models.NEBIM.Product
 {
     public class BarcodeAddModel
     {

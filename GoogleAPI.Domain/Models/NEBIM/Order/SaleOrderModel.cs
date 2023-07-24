@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace GoogleAPI.Domain.Models
+namespace GoogleAPI.Domain.Models.NEBIM.Order
 {
     public class SaleOrderModel
     {
@@ -13,7 +13,7 @@ namespace GoogleAPI.Domain.Models
         public string CurrAccCode { get; set; }
         public string CurrAccDescription { get; set; }
         public string SalespersonCode { get; set; }
-        public Double Qty1 { get; set; }
+        public double Qty1 { get; set; }
         public decimal Tutar { get; set; }
     }
 }

@@ -1,4 +1,4 @@
-﻿using GoogleAPI.Domain.Models;
+﻿using GoogleAPI.Domain.Models.NEBIM.Shelf;
 using GoogleAPI.Persistance.Contexts;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;

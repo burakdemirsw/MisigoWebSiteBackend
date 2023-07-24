@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using GoogleAPI.Domain.Models.NEBIM.Invoice;
 
-namespace GoogleAPI.Domain.Models
+namespace GoogleAPI.Domain.Models.NEBIM.Order
 {
     public class OrderBillingModel
     {

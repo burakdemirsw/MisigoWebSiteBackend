@@ -1,4 +1,4 @@
-﻿namespace GoogleAPI.Domain.Models.NEBIM
+﻿namespace GoogleAPI.Domain.Models.NEBIM.Warehouse
 {
     public class WarehouseOfficeModel
     {

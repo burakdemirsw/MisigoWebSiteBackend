@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace GoogleAPI.Domain.Models
+namespace GoogleAPI.Domain.Models.NEBIM.Order
 {
     public class ProductOfOrderModel
     {
@@ -14,9 +14,17 @@ namespace GoogleAPI.Domain.Models
         public string ColorCode { get; set; }
         public string ColorDescription { get; set; }
         public string ItemDim1Code { get; set; }
-
-        public int ShelfNo { get; set; }
+        public string RowNumber { get; set; }
+        public string ShelfNo { get; set; }
         public Guid PackageNo { get; set; }
+
+    }
+
+    public class ReadyToShipmentPackageModel
+    {
+
+        public Guid Id { get; set; }
+        public DateTime date { get; set; }
 
     }
 }
