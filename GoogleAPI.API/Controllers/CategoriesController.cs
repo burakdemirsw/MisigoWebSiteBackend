@@ -22,7 +22,7 @@ namespace GoogleAPI.API.Controllers
         }
 
         [HttpGet]
-        public IActionResult GetCategories( )
+        public async Task<IActionResult> GetCategories( )
         {
             try
             {
@@ -39,7 +39,7 @@ namespace GoogleAPI.API.Controllers
         }
 
         [HttpGet("{id}")]
-        public IActionResult GetCategoriesById(int id )
+        public async Task<IActionResult> GetCategoriesById(int id )
         {
             try
             {
@@ -60,7 +60,7 @@ namespace GoogleAPI.API.Controllers
         }
 
         [HttpPost()]
-        public IActionResult AddCategory(CategoryModel model)
+        public async Task<IActionResult> AddCategory(CategoryModel model)
         {
             try
             {
@@ -82,7 +82,7 @@ namespace GoogleAPI.API.Controllers
         }
 
         [HttpPut("{id}")]
-        public IActionResult UpdateCategory(int id, CategoryModel model)
+        public async Task<IActionResult> UpdateCategory(int id, CategoryModel model)
         {
             try
             {
@@ -112,7 +112,7 @@ namespace GoogleAPI.API.Controllers
         }
 
         [HttpDelete("{id}")]
-        public IActionResult DeleteCategory(int id)
+        public async Task<IActionResult> DeleteCategory(int id)
         {
             try
             {

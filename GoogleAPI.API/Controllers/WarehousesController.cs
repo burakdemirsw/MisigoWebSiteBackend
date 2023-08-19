@@ -84,8 +84,8 @@ namespace GoogleAPI.API.Controllers
                 response.EnsureSuccessStatusCode();
 
                 string responseBody = await response.Content.ReadAsStringAsync();
-                VM_HttpConnectionRequest session =
-                    JsonConvert.DeserializeObject<VM_HttpConnectionRequest>(responseBody);
+                HttpConnectionRequestModel session =
+                    JsonConvert.DeserializeObject<HttpConnectionRequestModel>(responseBody);
 
                 string sessionId = session.SessionId;
                 // Console.WriteLine(responseBody);
@@ -101,8 +101,6 @@ namespace GoogleAPI.API.Controllers
         [HttpPost("TransferProducts")]
         public async Task<IActionResult> TransferProducts(WarehouseFormModel item)
         {
-
-
             try
             {
 

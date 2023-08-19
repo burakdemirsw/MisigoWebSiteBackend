@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Drawing;
+using System.Drawing.Printing;
 using System.Net;
 using System.Text;
 
@@ -32,11 +33,11 @@ namespace GoogleAPI.API.Controllers
         }
 
         [HttpGet]
-        public IActionResult GetSaleOrders( )
+        public async Task<IActionResult> GetSaleOrders( ) //çalışıyor
         {
             try
             {
-                List<SaleOrderModel> saleOrderModel = _context.SaleOrderModels.FromSqlRaw("exec Get_ZTMSSatisSiparis").AsEnumerable().ToList();
+                List<SaleOrderModel> saleOrderModel = _context.SaleOrderModels.FromSqlRaw("exec GET_MSRAFOrderList").AsEnumerable().ToList();
 
                 return Ok(saleOrderModel);
             }
@@ -48,7 +49,7 @@ namespace GoogleAPI.API.Controllers
         }
 
         [HttpGet("OrderBillings/{orderNo}")]
-        public IActionResult GetOrderBillingModels(string orderNo)
+        public async Task<IActionResult> GetOrderBillingModels(string orderNo)
         {
             try
             {
@@ -71,28 +72,28 @@ namespace GoogleAPI.API.Controllers
                 return BadRequest(ErrorTextBase + ex.Message);
             }
         }
-        [HttpGet("GenerateQRCode")]
-        public IActionResult GenerateQRCode( )
-        {
-            try
-            {
-                Guid guid = Guid.NewGuid();
-                Image qrCodeImage = _orderService.QrCode(guid);
-                qrCodeImage.Save(@$"C:\\code\{guid.ToString()}.png");
-                return Ok(qrCodeImage);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest("QR kodu oluşturulamadı: " + ex.Message);
-            }
-        }
+        //[HttpGet("GenerateQRCode")]
+        //public async Task<IActionResult> GenerateQRCode( )
+        //{
+        //    try
+        //    {
+        //        Guid guid = Guid.NewGuid();
+        //        Image qrCodeImage = _orderService.QrCode(guid);
+        //        qrCodeImage.Save(@$"C:\\code\{guid.ToString()}.png");
+        //        return Ok(qrCodeImage);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return BadRequest("QR kodu oluşturulamadı: " + ex.Message);
+        //    }
+        //}
 
         [HttpGet("{id}")]
-        public IActionResult GetSaleOrdersById(string id)
+        public async Task<IActionResult> GetSaleOrdersById(string id)
         {
             try
             {
-                List<SaleOrderModel> saleOrderModel = _context.SaleOrderModels.FromSqlRaw($"exec Get_ZTMSSatisSiparisById '{id.Split(' ')[0]}' ").AsEnumerable().ToList();
+                List<SaleOrderModel> saleOrderModel = _context.SaleOrderModels.FromSqlRaw($"exec GET_MSRAFOrderListID '{id.Split(' ')[0]}' ").AsEnumerable().ToList();
 
                 return Ok(saleOrderModel);
             }
@@ -104,7 +105,7 @@ namespace GoogleAPI.API.Controllers
         }
 
         [HttpPost("Add")]
-        public IActionResult AddSaleBarcode(BarcodeAddModel model)
+        public async Task<IActionResult> AddSaleBarcode(BarcodeAddModel model)
         {
             try
             {
@@ -128,14 +129,23 @@ namespace GoogleAPI.API.Controllers
 
 
         [HttpGet("GetProductsOfOrders/{numberOfList}")]
-        public IActionResult GetProductsOfOrders( int numberOfList)
+        public async Task<IActionResult> GetProductsOfOrders(int numberOfList)
         {
 
             try
-            {
-                List<ProductOfOrderModel> productModels = _context.ztProductOfOrderModel.FromSqlRaw($"exec  Get_MSSiparisTopla '{numberOfList.ToString()}' ").AsEnumerable().ToList();
+            {   
+                List<ProductOfOrderModel> productModels = _context.ztProductOfOrderModel.FromSqlRaw($"exec   GET_MSRAFOrderCollect {numberOfList} ").AsEnumerable().ToList();
                 //BarcodeModel barcodeModel = barcodeModels.FirstOrDefault();
-                    return Ok(productModels);
+                if (productModels != null)
+                {
+
+                return Ok(productModels);
+                }
+                else
+                {
+                    return BadRequest(ErrorTextBase + "Null Object!");
+
+                }
             }
             catch (Exception ex)
             {
@@ -150,9 +160,9 @@ namespace GoogleAPI.API.Controllers
         {
             try
             {
-                string query = $"[dbo].[usp_ztMSRafTakipUpdate] '{models.First().PackageNo}','{true}'";
-                int count = await _context.Database.ExecuteSqlRawAsync(query); // Use ExecuteSqlRawAsync for EF Core 5.0 and later
-                                                                               // For EF Core 3.x or earlier, use _context.Database.ExecuteSqlCommandAsync(query);
+                string query = $"[dbo].[UPDATE_MSRAFPackageUpdate] '{models.First().PackageNo}','false'";
+                int count = await _context.Database.ExecuteSqlRawAsync(query); 
+                                                                      
 
                 return Ok(count);
             }
@@ -161,46 +171,107 @@ namespace GoogleAPI.API.Controllers
                 return BadRequest(ErrorTextBase + ex.Message);
             }
         }
+        [HttpPost("TryPrintPicture")]
+        public async Task<IActionResult> TryPrintPicture([FromBody] PrinterInvoiceRequestModel model)
+        {
+            try
+            {
+                // Download the image from the provided URL
+                using (var webClient = new WebClient())
+                {
+                    byte[] imageData = await webClient.DownloadDataTaskAsync(new Uri(model.Url));
 
-        //[httppost("getreadypackages")]
-        //public async task<iactionresult> setstatusofpackages(list<productofordermodel> models)
-        //{
-        //    try
-        //    {
-        //        string query = $"[dbo].[usp_ztmsraftakipupdate] '{models.first().packageno}','{true}'";
-        //        int count = await _context.database.executesqlrawasync(query); // use executesqlrawasync for ef core 5.0 and later
-        //                                                                       // for ef core 3.x or earlier, use _context.database.executesqlcommandasync(query);
+                    // Create a MemoryStream to hold the image data
+                    using (var stream = new System.IO.MemoryStream(imageData))
+                    {
+                        // Create an Image object from the stream
+                        using (var image = Image.FromStream(stream))
+                        {
+                            // Create a print document and set up the PrintPage event handler
+                            var printDocument = new PrintDocument();
+                            printDocument.PrinterSettings.PrinterName = model.PrinterName;
+                            ;
+                            printDocument.PrintPage += (s, e) =>
+                            {
+                                // Print the image on the print page
+                                e.Graphics.DrawImage(image, e.MarginBounds);
+                            };
 
-        //        return ok(count);
-        //    }
-        //    catch (exception ex)
-        //    {
-        //        return badrequest(errortextbase + ex.message);
-        //    }
-        //}
+                            // Send the print job to the default printer
+                            printDocument.Print();
+                        }
+                    }
+                }
 
-        //exec Get_MSSiparisToplaID '4052373c-914d-4ef4-b11e-16765d842c16'
-        [HttpGet("GetOrderSaleDetail/{orderNumber}")]
-            public IActionResult GetOrderSaleDetail(string orderNumber)
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ErrorTextBase + ex.Message);
+            }
+        }
+        [HttpGet("GetReadyToShipmentPackages")] //Paketlerin Statulerini True yada False olarak güncellettiriyor
+
+        public async Task<IActionResult> GetReadyToShipmentPackages( )
+        {
+            try
+            {
+                List<ReadyToShipmentPackageModel> models = new List<ReadyToShipmentPackageModel>();
+                string query = $" [dbo].[GET_MSRAFPackageList] 'false'";
+                models = _context.ztReadyToShipmentPackageModel.FromSqlRaw(query).AsEnumerable().ToList();
+
+
+                return Ok(models);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ErrorTextBase + ex.Message);
+            }
+        }
+
+        [HttpPut("PutReadyToShipmentPackagesStatusById/{id}")]
+        public async Task<IActionResult> PutReadyToShipmentPackagesStatusById(string id)
+        {
+            try
             {
 
-                try
-                {
-                    List<OrderSaleDetailModel> orderSaleDetails = _context.OrderSaleDetails.FromSqlRaw($"Get_ZTMSSatisSiparisDetay '{orderNumber}'").AsEnumerable().ToList();
-                    //BarcodeModel barcodeModel = barcodeModels.FirstOrDefault();
-                    return Ok(orderSaleDetails);
-                }
-                catch (Exception ex)
-                {
+                string query = $" [dbo].[usp_ztMSRafTakipUpdate] '{id}','true'";
+                int affectedRows = _context.Database.ExecuteSqlRaw(query);
 
-                    return BadRequest(ErrorTextBase + ex.Message);
 
-                }
+                return Ok(affectedRows);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ErrorTextBase + ex.Message);
+            }
+        }
+
+
+
+
+        [HttpGet("GetOrderSaleDetail/{orderNumber}")]
+        public async Task<IActionResult> GetOrderSaleDetail(string orderNumber)
+        {
+
+            try
+            {
+                List<ProductOfOrderModel> orderSaleDetails = _context.ztProductOfOrderModel.FromSqlRaw($"GET_MSRAFSalesOrderDetail'{orderNumber}'").AsEnumerable().ToList();
+                return Ok(orderSaleDetails);
+            }
+            catch (Exception ex)
+            {
+
+                return BadRequest(ErrorTextBase + ex.Message);
 
             }
 
+        }
+
+
+
         [HttpGet("GetOrderSaleDetailById/{PackageId}")]
-        public IActionResult GetOrderSaleDetailByPackageId(string PackageId)
+        public async Task<IActionResult> GetOrderSaleDetailByPackageId(string PackageId)
         {
 
             try
@@ -208,6 +279,132 @@ namespace GoogleAPI.API.Controllers
                 List<ProductOfOrderModel> orderSaleDetails = _context.ztProductOfOrderModel.FromSqlRaw($"Get_MSSiparisToplaID '{PackageId}'").AsEnumerable().ToList();
                 //BarcodeModel barcodeModel = barcodeModels.FirstOrDefault();
                 return Ok(orderSaleDetails);
+            }
+            catch (Exception ex)
+            {
+
+                return BadRequest(ErrorTextBase + ex.Message);
+
+            }
+
+        }
+
+
+        [HttpPost("CountProduct")]
+
+        public async Task<ActionResult<string>> CountProduct(CountProductRequestModel model)
+        {
+            try
+            {
+               
+                ProductCountModel productCountModel =  _context.ztProductCountModel.FromSqlRaw($"exec Get_MSRAFSAYIM2 '{model.Barcode}','{model.ShelfNo}',0,'{model.OrderNumber}',{model.Qty}").AsEnumerable().First();
+                if (productCountModel != null)
+                {
+                    return Ok(productCountModel); 
+                }
+                else
+                {
+                    return BadRequest(ErrorTextBase);
+                }
+           
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ErrorTextBase + ex.Message);
+            }
+        }
+        [HttpPost("CollectAndPack/{orderNo}")] //http://localhost:4200/order-operation/1-R-2-57
+        public async Task<IActionResult> CollectAndPack( string orderNo)
+        {
+            List<ProductCountModel> result = new List<ProductCountModel>();
+            List<string> productIds = new List<string>();   
+            productIds.Add(orderNo);
+            try
+            {
+                //gelen ordeNo içinde ws varsa yoksa usp_GetOrderForInvoiceToplu_R spsini çalıştır
+                if (orderNo.Contains("WS"))
+                {
+                    bool result2 = await _orderService.AutoInvoice(orderNo, "usp_GetOrderForInvoiceToplu_WS ");
+                    if (result2)
+                    {
+
+                        //FATURALAŞTIRMA İŞLEMİ YAPILMASI LAZIM
+                        await _orderService.GenerateReceipt(productIds); // SİPARİŞ FATURASI YAZDIRILIYOR...
+                        return Ok();
+                    }
+                    else
+                    {
+                        return BadRequest();
+                    }
+                }
+                else
+                {
+                    bool result2 = await _orderService.AutoInvoice(orderNo, "usp_GetOrderForInvoiceToplu_R ");
+                    if (result2)
+                    {
+
+                        //FATURALAŞTIRMA İŞLEMİ YAPILMASI LAZIM
+                        await _orderService.GenerateReceipt(productIds); // SİPARİŞ FATURASI YAZDIRILIYOR...
+                        return Ok();
+                    }
+                    else
+                    {
+                        return BadRequest();
+                    }
+                }
+
+
+                return BadRequest();
+
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ErrorTextBase + ex.Message);
+            }
+        }
+
+
+        [HttpPost("GetRemainingsProducts")]
+        public async Task<IActionResult> GetRemainingsProducts(GetRemainingsProductsRequest model)
+        {
+
+            string query = $"exec POST_MSRafOrderPicking '{model.PackageId}','{model.Barcode}','{model.Quantity}'";
+            try
+            {
+
+                List<RemainingProductsModel> returnedObject = null;
+
+                try
+                {
+                    returnedObject =_context.ztRemainingProductsModel?.FromSqlRaw(query).ToList();
+                }
+                catch (InvalidOperationException ex)
+                {
+                    
+                    returnedObject = null;
+                }
+                if (returnedObject is List<RemainingProductsModel>)
+                {
+                    RemainingProductsModel remainingProductsModel = (RemainingProductsModel)returnedObject.First();
+                    return Ok(remainingProductsModel);
+                }
+                else
+                {
+                    List<InvoiceNumberModel> returnedObject2 = _context.ztInvoiceNumberModel?.FromSqlRaw(query).AsEnumerable().ToList();
+                    if (returnedObject2 is List<InvoiceNumberModel>)
+                    {
+                        InvoiceNumberModel invoiceNumberModel = (InvoiceNumberModel)returnedObject2.First();
+                        string invoiceNumber = invoiceNumberModel.InvoiceNumber;
+                        return Ok(invoiceNumberModel);
+                    }
+                    else
+                    {
+                        return BadRequest("Okutma Hatalı");
+                    }
+
+                }
+
+
             }
             catch (Exception ex)
             {

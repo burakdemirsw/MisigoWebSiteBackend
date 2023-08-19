@@ -20,7 +20,7 @@ namespace GoogleAPI.API.Controllers
             _context = context;
         }
         [HttpGet("{id}")]
-        public IActionResult GetShelves(string? id)
+        public async Task<IActionResult> GetShelves(string? id)
         {
             try
             {
@@ -45,7 +45,7 @@ namespace GoogleAPI.API.Controllers
             }
         }
         [HttpGet("qr/{qrCode}")]
-        public IActionResult GetShelvesByQr(string? qrCode)
+        public async Task<IActionResult> GetShelvesByQr(string? qrCode)
         {
             try
             {
@@ -71,7 +71,7 @@ namespace GoogleAPI.API.Controllers
         }
 
         [HttpPost("Add")]
-        public IActionResult AddShelf(ShelfModel model)
+        public async Task<IActionResult> AddShelf(ShelfModel model)
         {
             try
             {

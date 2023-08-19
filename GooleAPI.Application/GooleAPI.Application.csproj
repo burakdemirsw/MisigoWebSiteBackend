@@ -16,6 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Abstractions\" />
     <Folder Include="IRepositories\ProductViewModel\" />
     <Folder Include="IRepositories\Product\" />
     <Folder Include="Models\" />

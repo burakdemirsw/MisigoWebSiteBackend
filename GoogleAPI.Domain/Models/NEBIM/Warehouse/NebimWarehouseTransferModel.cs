@@ -29,22 +29,8 @@ namespace GoogleAPI.Domain.Models.NEBIM.Warehouse
         public List<NebimWarehouseTransferLineModel> Lines { get; set; }
 
     }
-    public class NebimWarehouseTransferITAttributeModel
-    {
-        public string AttributeCode { get; set; }
-        public int AttributeTypeCode { get; set; }
-    }
 
-    public class NebimWarehouseTransferLineModel
-    {
-        public int ItemTypeCode { get; set; }
-        public string UsedBarcode { get; set; }
-        public string ItemCode { get; set; }
-        public string ColorCode { get; set; }
-        public string ItemDim1Code { get; set; }
-        public string BatchCode { get; set; }
-        public int Qty1 { get; set; }
-        public List<NebimWarehouseTransferITAttributeModel> ITAttributes { get; set; }
-    }
+
+
 
 }

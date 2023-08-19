@@ -6,11 +6,10 @@ using System.Threading.Tasks;
 
 namespace GoogleAPI.Domain.Models.NEBIM.Order
 {
-    public class ReadyToShipmentPackageModel
+    public class CollectAndPackModel
     {
-
-        public Guid Id { get; set; }
-        public DateTime date { get; set; }
-
+        public string Barcode { get; set; }
+        public string ShelfNo { get; set; }
+        public string OrderNo { get; set; }
     }
 }

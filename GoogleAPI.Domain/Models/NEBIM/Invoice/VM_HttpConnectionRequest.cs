@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace GoogleAPI.Domain.Models.NEBIM.Warehouse
+namespace GoogleAPI.Domain.Models.NEBIM.Invoice
 {
     public class VM_HttpConnectionRequest
     {
@@ -13,4 +13,3 @@ namespace GoogleAPI.Domain.Models.NEBIM.Warehouse
         public string SessionId { get; set; }
     }
 }
-

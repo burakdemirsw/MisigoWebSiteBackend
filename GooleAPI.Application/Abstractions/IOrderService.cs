@@ -9,8 +9,24 @@ namespace GooleAPI.Application.Abstractions
 {
     public interface IOrderService
     {
-        public Image QrCode(Guid texidt);
+        public Image QrCode(string id);
 
-        public Task<Bitmap> GetOrderDetailsFromQrCode(string data );
+        public Task<Bitmap> GetOrderDetailsFromQrCode(string data);
+
+        public Task<Bitmap> HtmlToImage(string html, string path);
+
+        public Task PrintWithoutDialog(Bitmap image);
+        public void ClearFolder( );
+
+        public void PrintInvoice(string HtmlPath);
+
+        public  Task<Boolean> GenerateReceipt(List<string> orderNumbers);
+        public Task<Boolean> AutoInvoice(string orderNumber,string procedureName);
+        public Task<string> ConnectIntegrator( );
+
+
+
+
+
     }
 }

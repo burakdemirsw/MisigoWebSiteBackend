@@ -19,7 +19,7 @@ namespace GoogleAPI.Persistance
                 );
                 configurationManager.AddJsonFile("appsettings.json");
 
-                return "Data Source=192.168.2.36;Initial Catalog=BDD2017;User ID=sa;Password=8969;TrustServerCertificate=True";
+                return "Data Source=192.168.2.36;Initial Catalog=BDD2017;User ID=sa;Password=8969;TrustServerCertificate=True;";
             }
         }
     }
