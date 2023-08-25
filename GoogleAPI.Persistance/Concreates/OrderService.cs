@@ -99,18 +99,29 @@ namespace GoogleAPI.Persistance.Concretes
 
         public Task PrintWithoutDialog(Bitmap image)
         {
-            return Task.Run(( ) =>
+            try
             {
-                System.Drawing.Printing.PrintDocument printDocument = new System.Drawing.Printing.PrintDocument();
-                // Set margins to 0 
-                printDocument.DefaultPageSettings.Margins = new System.Drawing.Printing.Margins(0, 0, 0, 0);
-                printDocument.PrintPage += (s, args) =>
+                return Task.Run(( ) =>
                 {
-                    args.Graphics.DrawImage(image, new System.Drawing.Point(0, 0));
-                };
-                printDocument.PrintController = new StandardPrintController();
-                printDocument.Print();
-            });
+                    System.Drawing.Printing.PrintDocument printDocument = new System.Drawing.Printing.PrintDocument();
+                    // Set margins to 0 
+                    printDocument.PrinterSettings.PrinterName = "Possify printer driver";
+                    printDocument.DefaultPageSettings.Margins = new System.Drawing.Printing.Margins(0, 0, 0, 0);
+                    printDocument.PrintPage += (s, args) =>
+                    {
+                        args.Graphics.DrawImage(image, new System.Drawing.Point(0, 0));
+                    };
+                    printDocument.PrintController = new StandardPrintController();
+                    printDocument.Print();
+                });
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Yazdırma Aşamasında Hata Alındı : {ex.Message} {ex.StackTrace}");
+
+                
+            }
+ 
         }
 
         public  async void ClearFolder( )
@@ -128,18 +139,27 @@ namespace GoogleAPI.Persistance.Concretes
                 File.Delete(pngFile);
             }
         }
-        public async  void PrintInvoice(string HtmlPath)
+        public async void  PrintInvoice(string HtmlPath)
         {
-            string pngPath = $"C:\\code\\{Guid.NewGuid().ToString()}-receipt.png";
+            try
+            {
+                string pngPath = $"C:\\code\\{Guid.NewGuid().ToString()}-receipt.png";
 
-            string htmlContent = File.ReadAllText(HtmlPath);
+                string htmlContent = File.ReadAllText(HtmlPath);
 
-            Bitmap picture = await HtmlToImage(htmlContent, pngPath);
+                Bitmap picture = await HtmlToImage(htmlContent, pngPath);
 
-            await PrintWithoutDialog(picture);
+                await PrintWithoutDialog(picture);
+            }
+            catch (Exception ex)
+            {
+
+                throw new Exception("Yazdırma Aşamasında Hata Alındı");
+            }
 
 
-            ClearFolder();
+
+            //ClearFolder();
 
         }
         public async Task<Boolean> GenerateReceipt(List<string> orderNumbers)
@@ -227,6 +247,8 @@ namespace GoogleAPI.Persistance.Concretes
             }
                 catch (Exception ex)
                 {
+                throw new Exception($"Yazdırma Aşamasında Hata Alındı : {ex.Message} {ex.StackTrace}");
+
                 return false;
                 }
 
@@ -503,7 +525,7 @@ namespace GoogleAPI.Persistance.Concretes
                                             context.SaveChanges();
                                             if (orderData.OrderNumber.Contains("WS"))
                                             {
-                                                var affectedRows = _context.Database.ExecuteSqlRaw($"exec usp_MSDeleteOrder '{orderData.OrderNumber}'").ToString();
+                                               // var affectedRows = _context.Database.ExecuteSqlRaw($"exec usp_MSDeleteOrder '{orderData.OrderNumber}'").ToString();
                                             }
                                             //exec sp_deleteInvoiceTrans çalıştırılcak
                                             return true;
@@ -511,6 +533,7 @@ namespace GoogleAPI.Persistance.Concretes
                                         catch (Exception ex)
                                         {
                                             return false;
+                                            throw new Exception($"Faturalaştırma Aşamasında Hata Alındı : {ex.Message} {ex.StackTrace}");
                                         }
 
 
@@ -521,6 +544,7 @@ namespace GoogleAPI.Persistance.Concretes
                     }
                     else
                     {
+                        throw new Exception($"OrderDataList Boş Geldi");
                         return false;
                     }
                     return false;
@@ -528,6 +552,7 @@ namespace GoogleAPI.Persistance.Concretes
             }
             catch (Exception ex)
             {
+                throw new Exception($"Faturalaştırma Aşamasında Hata Alındı : {ex.Message} {ex.StackTrace}");
                 return false;
             }
         }

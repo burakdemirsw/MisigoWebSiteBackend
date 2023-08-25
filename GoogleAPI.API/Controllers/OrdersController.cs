@@ -325,16 +325,26 @@ namespace GoogleAPI.API.Controllers
                 if (orderNo.Contains("WS"))
                 {
                     bool result2 = await _orderService.AutoInvoice(orderNo, "usp_GetOrderForInvoiceToplu_WS ");
+
                     if (result2)
                     {
 
                         //FATURALAŞTIRMA İŞLEMİ YAPILMASI LAZIM
-                        await _orderService.GenerateReceipt(productIds); // SİPARİŞ FATURASI YAZDIRILIYOR...
-                        return Ok();
+                        bool result3 = await _orderService.GenerateReceipt(productIds); // SİPARİŞ FATURASI YAZDIRILIYOR...
+                        if (result3)
+                        {
+                            return Ok("İşlem Başarılı");
+
+                        }
+                        else
+                        {
+                            return BadRequest("Yazdırma İşlemi Başarısız Oldu");
+                        }
                     }
                     else
                     {
-                        return BadRequest();
+                        throw new Exception("result2 değeri false döndü");
+                       
                     }
                 }
                 else
@@ -344,12 +354,22 @@ namespace GoogleAPI.API.Controllers
                     {
 
                         //FATURALAŞTIRMA İŞLEMİ YAPILMASI LAZIM
-                        await _orderService.GenerateReceipt(productIds); // SİPARİŞ FATURASI YAZDIRILIYOR...
-                        return Ok();
+                        bool result3 = await _orderService.GenerateReceipt(productIds); // SİPARİŞ FATURASI YAZDIRILIYOR...
+                        if (result3)
+                        {
+                            return Ok("İşlem Başarılı");
+
+                        }
+                        else
+                        {
+                            return BadRequest("Yazdırma İşlemi Başarısız Oldu");
+                        }
                     }
                     else
                     {
-                        return BadRequest();
+                        throw new Exception("result2 değeri false döndü");
+
+                       
                     }
                 }
 

@@ -4,27 +4,27 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddPersistanceServices();
-//builder.Services.AddCors(
-//    options =>
-//        options.AddDefaultPolicy(
-//            policy =>
-//                policy
-//                    .WithOrigins("http://localhost:7179", "http://212.156.46.206:7179", "http://192.168.2.38:7179", "http://212.156.46.206:4201", "http://localhost:4201", "http://192.168.2.38:4201")
-//                    .AllowAnyHeader()
-//                    .AllowAnyMethod()
-//        )
-//);
-
 builder.Services.AddCors(
     options =>
         options.AddDefaultPolicy(
             policy =>
                 policy
-                    .WithOrigins("http://localhost:7178", "http://212.156.46.206:7178", "http://192.168.2.38:7178", "http://212.156.46.206:4200", "http://localhost:4200", "http://192.168.2.38:4200")
+                    .WithOrigins("http://localhost:7179", "http://212.156.46.206:7179", "http://192.168.2.38:7179", "http://212.156.46.206:4201", "http://localhost:4201", "http://192.168.2.38:4201")
                     .AllowAnyHeader()
                     .AllowAnyMethod()
         )
 );
+
+//builder.Services.AddCors(
+//    options =>
+//        options.AddDefaultPolicy(
+//            policy =>
+//                policy
+//                    .WithOrigins("http://localhost:7178", "http://212.156.46.206:7178", "http://192.168.2.38:7178", "http://212.156.46.206:4200", "http://localhost:4200", "http://192.168.2.38:4200")
+//                    .AllowAnyHeader()
+//                    .AllowAnyMethod()
+//        )
+//);
 
 builder.Services.AddControllers();
 
