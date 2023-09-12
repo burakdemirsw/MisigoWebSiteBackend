@@ -1,4 +1,5 @@
 ﻿using GoogleAPI.Domain.Models.NEBIM;
+using GoogleAPI.Domain.Models.NEBIM.Customer;
 using GoogleAPI.Domain.Models.NEBIM.Invoice;
 using GoogleAPI.Domain.Models.NEBIM.Order;
 using GoogleAPI.Domain.Models.NEBIM.Product;
@@ -9,6 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using NHibernate.Linq;
 using System.Drawing;
 using System.Drawing.Printing;
 using System.Net;
@@ -33,7 +35,7 @@ namespace GoogleAPI.API.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetSaleOrders( ) //çalışıyor
+        public async Task<IActionResult> GetOrders( ) //çalışıyor
         {
             try
             {
@@ -48,23 +50,19 @@ namespace GoogleAPI.API.Controllers
             }
         }
 
-        [HttpGet("OrderBillings/{orderNo}")]
-        public async Task<IActionResult> GetOrderBillingModels(string orderNo)
+
+        #region alış faturası işlemleri
+
+
+        [HttpGet("CustomerList")]
+        public async Task<IActionResult> GetCustomerList( ) //çalışıyor
         {
             try
             {
+                List<CustomerModel> customerModel = _context.ztCustomerModel.FromSqlRaw("select CurrAccCode,CurrAccDescription from cdCurrAccDesc where CurrAccTypeCode  = 1 order by CurrAccDescription " +
+                    "").AsEnumerable().ToList();
 
-                List<OrderBillingModel> saleOrderModel = _context.ztOrderBillingModel.FromSqlRaw($" ").AsEnumerable().ToList();
-                List<OrderBillingListModel> OrderBillingListModels = new List<OrderBillingListModel>();
-                foreach (var item in saleOrderModel)
-                {
-                    OrderBillingListModel orderBillingListModel = new OrderBillingListModel();
-                    orderBillingListModel.ItemBillingModels = JsonConvert.DeserializeObject<List<ItemBillingModel>>(item.Json);
-                    orderBillingListModel.TotalValue = item.TotalValue;
-                    OrderBillingListModels.Add(orderBillingListModel);
-
-                }
-                return Ok(OrderBillingListModels);
+                return Ok(customerModel);
             }
             catch (Exception ex)
             {
@@ -72,6 +70,68 @@ namespace GoogleAPI.API.Controllers
                 return BadRequest(ErrorTextBase + ex.Message);
             }
         }
+
+
+        [HttpGet("GetPurchaseOrderSaleDetail/{orderNumber}")]
+        public async Task<IActionResult> GetPurchaseOrderSaleDetail(string orderNumber)
+        {
+
+            try
+            {
+                List<ProductOfOrderModel> orderSaleDetails = _context.ztProductOfOrderModel.FromSqlRaw($"GET_MSRAFSalesOrderDetailBP'{orderNumber}'").AsEnumerable().ToList();
+                return Ok(orderSaleDetails);
+            }
+            catch (Exception ex)
+            {
+
+                return BadRequest(ErrorTextBase + ex.Message);
+
+            }
+
+        }
+
+        [HttpGet("GetPurchaseOrders")]
+        public async Task<IActionResult> GetPurchaseOrders( )
+        {
+            try
+            {
+                List<SaleOrderModel> saleOrderModel = _context.SaleOrderModels.FromSqlRaw("exec GET_MSRAFOrderBPList").AsEnumerable().ToList();
+
+                return Ok(saleOrderModel);
+            }
+            catch (Exception ex)
+            {
+
+                return BadRequest(ErrorTextBase + ex.Message);
+            }
+        }
+        #endregion alış faturası işlemleri 
+        //[HttpGet("OrderBillings/{orderNo}")]
+        //public async Task<IActionResult> GetOrderBillingModels(string orderNo)
+        //{
+        //    try
+        //    {
+
+        //        List<OrderBillingModel> saleOrderModel = _context.ztOrderBillingModel.FromSqlRaw($" ").AsEnumerable().ToList();
+        //        List<OrderBillingListModel> OrderBillingListModels = new List<OrderBillingListModel>();
+        //        foreach (var item in saleOrderModel)
+        //        {
+        //            OrderBillingListModel orderBillingListModel = new OrderBillingListModel();
+        //            orderBillingListModel.ItemBillingModels = JsonConvert.DeserializeObject<List<ItemBillingModel>>(item.Json);
+        //            orderBillingListModel.TotalValue = item.TotalValue;
+        //            OrderBillingListModels.Add(orderBillingListModel);
+
+        //        }
+        //        return Ok(OrderBillingListModels);
+        //    }
+        //    catch (Exception ex)
+        //    {
+
+        //        return BadRequest(ErrorTextBase + ex.Message);
+        //    }
+        //}
+
+
         //[HttpGet("GenerateQRCode")]
         //public async Task<IActionResult> GenerateQRCode( )
         //{
@@ -88,7 +148,7 @@ namespace GoogleAPI.API.Controllers
         //    }
         //}
 
-        [HttpGet("{id}")]
+        [HttpGet("{id}")]   
         public async Task<IActionResult> GetSaleOrdersById(string id)
         {
             try
@@ -247,8 +307,7 @@ namespace GoogleAPI.API.Controllers
             }
         }
 
-
-
+     
 
         [HttpGet("GetOrderSaleDetail/{orderNumber}")]
         public async Task<IActionResult> GetOrderSaleDetail(string orderNumber)
@@ -256,7 +315,7 @@ namespace GoogleAPI.API.Controllers
 
             try
             {
-                List<ProductOfOrderModel> orderSaleDetails = _context.ztProductOfOrderModel.FromSqlRaw($"GET_MSRAFSalesOrderDetail'{orderNumber}'").AsEnumerable().ToList();
+                    List<ProductOfOrderModel> orderSaleDetails = _context.ztProductOfOrderModel.FromSqlRaw($"GET_MSRAFSalesOrderDetail'{orderNumber}'").AsEnumerable().ToList();
                 return Ok(orderSaleDetails);
             }
             catch (Exception ex)
@@ -288,16 +347,16 @@ namespace GoogleAPI.API.Controllers
             }
 
         }
+        #region raf-barkod doğrulama alanları
 
+        [HttpPost("CountProductPuschase")]
 
-        [HttpPost("CountProduct")]
-
-        public async Task<ActionResult<string>> CountProduct(CountProductRequestModel model)
+        public async Task<ActionResult<string>> CountProduct(CreatePurchaseInvoice model)
         {
             try
             {
-               
-                ProductCountModel productCountModel =  _context.ztProductCountModel.FromSqlRaw($"exec Get_MSRAFSAYIM2 '{model.Barcode}','{model.ShelfNo}',0,'{model.OrderNumber}',{model.Qty}").AsEnumerable().First();
+                string query = $"exec Get_MSRAFSAYIM4 '{model.Barcode}','{model.ShelfNo}',0,'{model.OrderNumber}',{model.Quantity},'{model.Warehouse}','{model.CurrAccCode}'";
+                ProductCountModel productCountModel =  _context.ztProductCountModel.FromSqlRaw(query).AsEnumerable().First();
                 if (productCountModel != null)
                 {
                     return Ok(productCountModel); 
@@ -313,7 +372,32 @@ namespace GoogleAPI.API.Controllers
                 return BadRequest(ErrorTextBase + ex.Message);
             }
         }
-        [HttpPost("CollectAndPack/{orderNo}")] //http://localhost:4200/order-operation/1-R-2-57
+
+        [HttpPost("CountProduct")]
+
+        public async Task<ActionResult<string>> CountProduct(CountProductRequestModel model)
+        {
+            try
+            {
+                string query = $"exec Get_MSRAFSAYIM2 '{model.Barcode}','{model.ShelfNo}',0,'{model.OrderNumber}',{model.Qty}";
+                ProductCountModel productCountModel = _context.ztProductCountModel.FromSqlRaw(query).AsEnumerable().First();
+                if (productCountModel != null)
+                {
+                    return Ok(productCountModel);
+                }
+                else
+                {
+                    return BadRequest(ErrorTextBase);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ErrorTextBase + ex.Message);
+            }
+        }
+        #endregion 
+        [HttpPost("CollectAndPack/{orderNo}")]
         public async Task<IActionResult> CollectAndPack( string orderNo)
         {
             List<ProductCountModel> result = new List<ProductCountModel>();
@@ -346,8 +430,33 @@ namespace GoogleAPI.API.Controllers
                         throw new Exception("result2 değeri false döndü");
                        
                     }
+                }else if (orderNo.Contains("BP"))
+                {
+                    bool result2 = await _orderService.AutoInvoice(orderNo, "usp_GetOrderForInvoiceToplu_BP ");
+
+                    if (result2)
+                    {
+
+                        //FATURALAŞTIRMA İŞLEMİ YAPILMASI LAZIM
+                        bool result3 = await _orderService.GenerateReceipt(productIds); // SİPARİŞ FATURASI YAZDIRILIYOR...
+                        if (result3)
+                        {
+                            return Ok("İşlem Başarılı");
+
+                        }
+                        else
+                        {
+                            return BadRequest("Yazdırma İşlemi Başarısız Oldu");
+                        }
+                    }
+                    else
+                    {
+                        throw new Exception("result2 değeri false döndü");
+
+                    }
                 }
-                else
+                
+                else if (orderNo.Contains("R"))
                 {
                     bool result2 = await _orderService.AutoInvoice(orderNo, "usp_GetOrderForInvoiceToplu_R ");
                     if (result2)
@@ -370,6 +479,32 @@ namespace GoogleAPI.API.Controllers
                         throw new Exception("result2 değeri false döndü");
 
                        
+                    }
+                }
+                else
+                  
+                {
+                    bool result2 = await _orderService.AutoInvoice(orderNo.ToString(), "usp_GetOrderForInvoiceToplu_BP2 ");
+
+                    if (result2)
+                    {
+
+                        //FATURALAŞTIRMA İŞLEMİ YAPILMASI LAZIM
+                        bool result3 = await _orderService.GenerateReceipt(productIds); // SİPARİŞ FATURASI YAZDIRILIYOR...
+                        if (result3)
+                        {
+                            return Ok("İşlem Başarılı");
+
+                        }
+                        else
+                        {
+                            return BadRequest("Yazdırma İşlemi Başarısız Oldu");
+                        }
+                    }
+                    else
+                    {
+                        throw new Exception("result2 değeri false döndü");
+
                     }
                 }
 

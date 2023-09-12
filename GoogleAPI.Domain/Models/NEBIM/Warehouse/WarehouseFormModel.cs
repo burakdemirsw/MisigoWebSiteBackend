@@ -21,8 +21,6 @@ namespace GoogleAPI.Domain.Models.NEBIM.Warehouse
         public string ColorCode { get; set; }
         public string ItemDim1Code { get; set; }
 
-
-        // Add any additional properties or methods here
     }
 
 }

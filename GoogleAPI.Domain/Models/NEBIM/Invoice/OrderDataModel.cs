@@ -12,6 +12,8 @@ namespace GoogleAPI.Domain.Models.NEBIM.Invoice
         public string InternalDescription { get; set; }
         public string OrderNumber { get; set; }
         public string OrderNo { get; set; } //solo
+        public string EInvoicenumber { get; set; } //solo
+
         public int TaxTypeCode { get; set; } //solo
 
         public Guid OrderHeaderID { get; set; }
@@ -95,6 +97,21 @@ namespace GoogleAPI.Domain.Models.NEBIM.Invoice
         public string BatchCode { get; set; }
 
         public List<ITAttribute> ITAttributes { get; set; } 
+        public decimal LDisRate1 { get; set; }
+        public int VatRate { get; set; }
+        public decimal PriceVI { get; set; }
+        public decimal AmountVI { get; set; }
+        public int Qty1 { get; set; }
+    }
+    public class OrderLineBP
+    {
+        // public Guid OrderLineID { get; set; }
+        public string UsedBarcode { get; set; }
+
+       //public string SalesPersonCode { get; set; }
+        public string BatchCode { get; set; }
+
+        public List<ITAttribute> ITAttributes { get; set; }
         public decimal LDisRate1 { get; set; }
         public int VatRate { get; set; }
         public decimal PriceVI { get; set; }

@@ -21,7 +21,8 @@ namespace GoogleAPI.API.Controllers
     {
         private readonly GooleAPIDbContext _context;
         private readonly string ErrorTextBase = "İstek Sırasında Hata Oluştu: ";
-       // private IOrderService _orderService;
+        private readonly string IpAdresi = "http://192.168.2.36:7676";
+        // private IOrderService _orderService;
         public WarehousesController(
            GooleAPIDbContext context,
            IOrderService orderService
@@ -33,8 +34,8 @@ namespace GoogleAPI.API.Controllers
 
 
 
-        //GetOperationWarehousue
-        [HttpGet("GetBarcodeDetail/{qrCode}")]
+        //Ürün Controller'ına taşınması lazım
+        [HttpGet("GetBarcodeDetail/{qrCode}")] //?
         public IActionResult GetBarcodeDetail(string qrCode)
         {
 
@@ -50,27 +51,7 @@ namespace GoogleAPI.API.Controllers
                 return BadRequest(ErrorTextBase + ex.Message);
             }
         }
-
-
-
-        [HttpGet("GetOfficeModel")]
-        public IActionResult GetOfficeModel( )
-        {
-
-            try
-            {
-                List<OfficeModel> officeCodes = _context.ztOfficeModel.FromSqlRaw($"exec usp_MSOfis").AsEnumerable().ToList();
-                //BarcodeModel barcodeModel = barcodeModels.FirstOrDefault();
-                return Ok(officeCodes);
-            }
-
-            catch (Exception ex)
-            {
-
-                return BadRequest(ErrorTextBase + ex.Message);
-            }
-        }
-        private readonly string IpAdresi = "http://192.168.2.36:7676";
+        //Nebim Servislerine taşınması lazım
 
         private async Task<string> ConnectIntegrator( )
         {
@@ -98,7 +79,26 @@ namespace GoogleAPI.API.Controllers
             }
         }
 
-        [HttpPost("TransferProducts")]
+
+        [HttpGet("GetOfficeModel")] //ofiseleri çeker
+        public IActionResult GetOfficeModel( )
+        {
+
+            try
+            {
+                List<OfficeModel> officeCodes = _context.ztOfficeModel.FromSqlRaw($"exec usp_MSOfis").AsEnumerable().ToList();
+                //BarcodeModel barcodeModel = barcodeModels.FirstOrDefault();
+                return Ok(officeCodes);
+            }
+
+            catch (Exception ex)
+            {
+
+                return BadRequest(ErrorTextBase + ex.Message);
+            }
+        }
+      
+        [HttpPost("TransferProducts")] //seçilen ürünleri depolar arası transfer eder
         public async Task<IActionResult> TransferProducts(WarehouseFormModel item)
         {
             try
@@ -171,7 +171,7 @@ namespace GoogleAPI.API.Controllers
                 return BadRequest(ErrorTextBase + ex.Message);
             }
         }
-        [HttpGet("GetWarehouseModel/{officeCode}")]
+        [HttpGet("GetWarehouseModel/{officeCode}")]//verilen ofis koduna göre depoları çeker
         public IActionResult WarehouseModel(string officeCode)
         {
 
@@ -187,7 +187,7 @@ namespace GoogleAPI.API.Controllers
                 return BadRequest(ErrorTextBase + ex.Message);
             }
         }
-        [HttpGet("GetWarehosueOperationList")]
+        [HttpGet("GetWarehosueOperationList")] //yapılan  depo işlemlerinden tamamlamayanları çeker
         public IActionResult GetWarehosueOperationList( )
         {
             try
@@ -202,7 +202,7 @@ namespace GoogleAPI.API.Controllers
                 return BadRequest(ErrorTextBase + ex.Message);
             }
         }
-        [HttpGet("GetWarehouseOperationDetail/{innerNumber}")]
+        [HttpGet("GetWarehouseOperationDetail/{innerNumber}")] // yapılan depo işlemini id ye göre çeker
         public IActionResult GetWarehosueOperationDetail(string innerNumber)
         {
             try
@@ -218,8 +218,7 @@ namespace GoogleAPI.API.Controllers
             }
         }
 
-
-        [HttpPost("SendNebımToTransferProduct")]
+        [HttpPost("SendNebımToTransferProduct")]//yapılan depo işlemi işlem numarasına göre direkt transfer eder
         public IActionResult SendNebımToTransferProduct(WarehouseOperationProduct model)
         {
             try
@@ -241,7 +240,7 @@ namespace GoogleAPI.API.Controllers
             }
         }
 
-        [HttpPost("ConfirmOperation")]
+        [HttpPost("ConfirmOperation")] // yapılan depo işlemlerin durumunu günceller 
         public IActionResult ConfirmOperation(List<string> InnerNumberList)
         {
             try
@@ -263,16 +262,13 @@ namespace GoogleAPI.API.Controllers
             }
         }
 
-
-
-        [HttpGet("GetOperationWarehousue/{innerNumber}")]
+        [HttpGet("GetOperationWarehousue/{innerNumber}")]//verilen operasyon kodu ile Ürünleri Çeker
         public IActionResult GetOperationWarehousue(string innerNumber)
         {
 
             try
             {
                 List<BarcodeModel> barcodeModels = _context.BarcodeModels.FromSqlRaw($"usp_QRKontrolSorgula '{innerNumber}'").AsEnumerable().ToList();
-                //BarcodeModel barcodeModel = barcodeModels.FirstOrDefault();
                 return Ok(barcodeModels);
             }
             catch (Exception ex)

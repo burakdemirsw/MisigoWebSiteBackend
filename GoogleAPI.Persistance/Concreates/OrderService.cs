@@ -154,7 +154,7 @@ namespace GoogleAPI.Persistance.Concretes
             catch (Exception ex)
             {
 
-                throw new Exception("Yazdırma Aşamasında Hata Alındı");
+                throw new Exception($"Yazdırma Aşamasında Hata Alındı (PrintInvoice): {ex.Message} {ex.StackTrace}");
             }
 
 
@@ -355,6 +355,7 @@ namespace GoogleAPI.Persistance.Concretes
                             OrderDataModel orderDataModel = new OrderDataModel
                             {
                                 InternalDescription = orderData.InternalDescription,
+                                EInvoicenumber = orderData.EInvoicenumber,
                                 OrderNo = orderData.OrderNo,
                                 TaxTypeCode = orderData.TaxTypeCode,
                                 OrderNumber = orderData.OrderNumber,
@@ -419,7 +420,7 @@ namespace GoogleAPI.Persistance.Concretes
                                 jsonModel = jsonModel2;
 
                             }
-                            else
+                            else if(orderNumber.Contains("R"))
                             {
                                 var jsonModel1 = new
                                 {
@@ -458,9 +459,55 @@ namespace GoogleAPI.Persistance.Concretes
                                 };
                                 jsonModel = jsonModel1;
                             }
-                           
+                            else
+                            {
+                                List<OrderLineBP> lineList = new List<OrderLineBP>();
+                                foreach (OrderLine line in orderData.Lines)
+                                {
+                                    OrderLineBP orderLineBP = new OrderLineBP
+                                    {
+                                        UsedBarcode = line.UsedBarcode,
+                                        BatchCode = line.BatchCode,
+                                        ITAttributes = line.ITAttributes,
+                                        LDisRate1 = line.LDisRate1,
+                                        VatRate = line.VatRate,
+                                        PriceVI = line.PriceVI,
+                                        AmountVI = line.AmountVI,
+                                        Qty1 = line.Qty1
+                                    };
 
-                           
+                                    lineList.Add(orderLineBP);
+                                }
+                                var jsonModel3 = new
+                                {
+                                    ModelType = 19,
+                                    VendorCode = orderData.CurrAccCode,
+                                    EInvoicenumber = orderData.EInvoicenumber,
+                                    PosTerminalID = 1,
+                                    TaxTypeCode = orderData.TaxTypeCode,
+                                    InvoiceDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
+                                    Description = orderData.InternalDescription, //siparisNo
+                                    InternalDescription = orderData.InternalDescription, //siparisNo
+                                    IsOrderBase = false,
+                                    ShipmentMethodCode = orderData.ShipmentMethodCode,
+
+                                    CompanyCode = orderData.CompanyCode,
+
+                                    EMailAddress = orderData.EMailAddress,
+                                    BillingPostalAddressID = orderData.BillingPostalAddressID,
+                                    ShippingPostalAddressID = orderData.ShippingPostalAddressID,
+                                    OfficeCode = orderData.OfficeCode,
+                                    WareHouseCode = orderData.WareHouseCode,
+
+                                    Lines = lineList,
+
+                                    IsCompleted = true
+                                };
+                                jsonModel = jsonModel3;
+                            }
+
+
+
 
                             var json = JsonConvert.SerializeObject(jsonModel);
 
@@ -477,7 +524,7 @@ namespace GoogleAPI.Persistance.Concretes
                                     $"http://192.168.2.36:7676/(S({sessionID}))/IntegratorService/post?",
                                     content
                                 );
-                                var result = await response.Content.ReadAsStringAsync();
+                                var result = await response.Content.ReadAsStringAsync() ;
                                 JObject jsonResponse = JObject.Parse(result);
                                 string eInvoiceNumber = jsonResponse["EInvoiceNumber"].ToString();
                                 string UnofficialInvoiceString = jsonResponse[
