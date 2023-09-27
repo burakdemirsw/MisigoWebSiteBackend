@@ -54,13 +54,13 @@ namespace GoogleAPI.API.Controllers
         #region alış faturası işlemleri
 
 
-        [HttpGet("CustomerList")]
-        public async Task<IActionResult> GetCustomerList( ) //çalışıyor
+        [HttpGet("CustomerList/{customerType}")]
+        public async Task<IActionResult> GetCustomerList( int customerType) //çalışıyor
         {
             try
             {
-                List<CustomerModel> customerModel = _context.ztCustomerModel.FromSqlRaw("select CurrAccCode,CurrAccDescription from cdCurrAccDesc where CurrAccTypeCode  = 1 order by CurrAccDescription " +
-                    "").AsEnumerable().ToList();
+                List<CustomerModel> customerModel = _context.ztCustomerModel.FromSqlRaw($"select CurrAccCode,CurrAccDescription from cdCurrAccDesc where CurrAccTypeCode  = {customerType} order by CurrAccDescription " +
+                    "").AsEnumerable().ToList(); //3 dicez
 
                 return Ok(customerModel);
             }
@@ -301,7 +301,7 @@ namespace GoogleAPI.API.Controllers
 
                 return Ok(affectedRows);
             }
-            catch (Exception ex)
+            catch (Exception ex)    
             {
                 return BadRequest(ErrorTextBase + ex.Message);
             }
@@ -348,6 +348,32 @@ namespace GoogleAPI.API.Controllers
 
         }
         #region raf-barkod doğrulama alanları
+        //Post_MSRAFSTOKEKLE
+
+        [HttpPost("CountTransferProductPuschase")]
+
+        public async Task<ActionResult<string>> CountTransferProductPuschase(CreatePurchaseInvoice model)
+        {
+            try
+            {
+                string query = $"exec Post_MSRAFSTOKEKLE '{model.Barcode}','{model.ShelfNo}',0,'{model.OrderNumber}',{model.Quantity},'{model.Warehouse}','{model.CurrAccCode}'";
+                ProductCountModel productCountModel = _context.ztProductCountModel.FromSqlRaw(query).AsEnumerable().First();
+                if (productCountModel != null)
+                {
+                    return Ok(productCountModel);
+                }
+                else
+                {
+                    return BadRequest(ErrorTextBase);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ErrorTextBase + ex.Message);
+            }
+        }
+
 
         [HttpPost("CountProductPuschase")]
 
@@ -396,117 +422,247 @@ namespace GoogleAPI.API.Controllers
                 return BadRequest(ErrorTextBase + ex.Message);
             }
         }
-        #endregion 
-        [HttpPost("CollectAndPack/{orderNo}")]
-        public async Task<IActionResult> CollectAndPack( string orderNo)
+        [HttpGet("CountProductByBarcode/{barcode}")]
+
+        public async Task<IActionResult> CountProductByBarcode(string barcode)
         {
-            List<ProductCountModel> result = new List<ProductCountModel>();
-            List<string> productIds = new List<string>();   
-            productIds.Add(orderNo);
             try
             {
-                //gelen ordeNo içinde ws varsa yoksa usp_GetOrderForInvoiceToplu_R spsini çalıştır
-                if (orderNo.Contains("WS"))
+                if (barcode.Contains("%20"))
                 {
-                    bool result2 = await _orderService.AutoInvoice(orderNo, "usp_GetOrderForInvoiceToplu_WS ");
+                    barcode = barcode.Replace("%20", " "); // Örnek düzeltme
 
-                    if (result2)
-                    {
-
-                        //FATURALAŞTIRMA İŞLEMİ YAPILMASI LAZIM
-                        bool result3 = await _orderService.GenerateReceipt(productIds); // SİPARİŞ FATURASI YAZDIRILIYOR...
-                        if (result3)
-                        {
-                            return Ok("İşlem Başarılı");
-
-                        }
-                        else
-                        {
-                            return BadRequest("Yazdırma İşlemi Başarısız Oldu");
-                        }
-                    }
-                    else
-                    {
-                        throw new Exception("result2 değeri false döndü");
-                       
-                    }
-                }else if (orderNo.Contains("BP"))
-                {
-                    bool result2 = await _orderService.AutoInvoice(orderNo, "usp_GetOrderForInvoiceToplu_BP ");
-
-                    if (result2)
-                    {
-
-                        //FATURALAŞTIRMA İŞLEMİ YAPILMASI LAZIM
-                        bool result3 = await _orderService.GenerateReceipt(productIds); // SİPARİŞ FATURASI YAZDIRILIYOR...
-                        if (result3)
-                        {
-                            return Ok("İşlem Başarılı");
-
-                        }
-                        else
-                        {
-                            return BadRequest("Yazdırma İşlemi Başarısız Oldu");
-                        }
-                    }
-                    else
-                    {
-                        throw new Exception("result2 değeri false döndü");
-
-                    }
                 }
-                
-                else if (orderNo.Contains("R"))
+                string query = $"exec Get_MSRAFGOSTER '{barcode}'";
+                List<ProductCountModel> productCountModel = _context.ztProductCountModel.FromSqlRaw(query).AsEnumerable().ToList();
+                ;
+                if (productCountModel != null)
                 {
-                    bool result2 = await _orderService.AutoInvoice(orderNo, "usp_GetOrderForInvoiceToplu_R ");
-                    if (result2)
-                    {
-
-                        //FATURALAŞTIRMA İŞLEMİ YAPILMASI LAZIM
-                        bool result3 = await _orderService.GenerateReceipt(productIds); // SİPARİŞ FATURASI YAZDIRILIYOR...
-                        if (result3)
-                        {
-                            return Ok("İşlem Başarılı");
-
-                        }
-                        else
-                        {
-                            return BadRequest("Yazdırma İşlemi Başarısız Oldu");
-                        }
-                    }
-                    else
-                    {
-                        throw new Exception("result2 değeri false döndü");
-
-                       
-                    }
+                    return Ok(productCountModel);
                 }
                 else
-                  
                 {
-                    bool result2 = await _orderService.AutoInvoice(orderNo.ToString(), "usp_GetOrderForInvoiceToplu_BP2 ");
+                    return BadRequest(ErrorTextBase);
+                }
 
-                    if (result2)
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ErrorTextBase + ex.Message);
+            }
+        }
+
+        #endregion 
+        [HttpPost("CollectAndPack/{orderNo}")]
+        public async Task<IActionResult> BillingOrder( OrderBillingRequestModel model) //bu kısımda orderNo ve invoiceType Değişkenleri İle İşlem Al  //eski ad : CollectAndPack
+        {
+           // List<ProductCountModel> result = new List<ProductCountModel>();
+            List<string> productIds = new List<string>();   
+            productIds.Add(model.OrderNo);
+            try
+            {
+
+                if (model.InvoiceModel == 1) //ALIŞ FATURASI  (oluşturulmamış)
+                {
+                    if ( model.InvoiceType == true) //ALIŞ IADE 
                     {
+                        bool result2 = await _orderService.AutoInvoice(model.OrderNo.ToString(), "usp_FoGetOrderrInvoiceToplu_BP2",model);
 
-                        //FATURALAŞTIRMA İŞLEMİ YAPILMASI LAZIM
-                        bool result3 = await _orderService.GenerateReceipt(productIds); // SİPARİŞ FATURASI YAZDIRILIYOR...
-                        if (result3)
+                        if (result2)
                         {
-                            return Ok("İşlem Başarılı");
 
+                            //FATURALAŞTIRMA İŞLEMİ YAPILMASI LAZIM
+                            bool result3 = await _orderService.GenerateReceipt(productIds); // SİPARİŞ FATURASI YAZDIRILIYOR...
+                            if (result3)
+                            {
+                                return Ok("İşlem Başarılı");
+
+                            }
+                            else
+                            {
+                                return BadRequest("Yazdırma İşlemi Başarısız Oldu");
+                            }
                         }
                         else
                         {
-                            return BadRequest("Yazdırma İşlemi Başarısız Oldu");
+                            throw new Exception("result2 değeri false döndü");
+
                         }
                     }
                     else
-                    {
-                        throw new Exception("result2 değeri false döndü");
 
+                    {
+                        bool result2 = await _orderService.AutoInvoice(model.OrderNo.ToString(), "usp_GetOrderForInvoiceToplu_BP2",model);
+
+                        if (result2)
+                        {
+
+                            //FATURALAŞTIRMA İŞLEMİ YAPILMASI LAZIM
+                            bool result3 = await _orderService.GenerateReceipt(productIds); // SİPARİŞ FATURASI YAZDIRILIYOR...
+                            if (result3)
+                            {
+                                return Ok("İşlem Başarılı");
+
+                            }
+                            else
+                            {
+                                return BadRequest("Yazdırma İşlemi Başarısız Oldu");
+                            }
+                        }
+                        else
+                        {
+                            throw new Exception("result2 değeri false döndü");
+
+                        }
+                    }
+
+                }
+                else if (model.InvoiceModel == 2)//alış sipariş
+                {
+                    if (model.OrderNo.Contains("BP") && model.InvoiceType == false) //ve  invoiceType == true ise 
+                    {
+                        bool result2 = await _orderService.AutoInvoice(model.OrderNo, "usp_GetOrderForInvoiceToplu_BP",model);
+
+                        if (result2)
+                        {
+
+                            //FATURALAŞTIRMA İŞLEMİ YAPILMASI LAZIM
+                            bool result3 = await _orderService.GenerateReceipt(productIds); // SİPARİŞ FATURASI YAZDIRILIYOR...
+                            if (result3)
+                            {
+                                return Ok("İşlem Başarılı");
+
+                            }
+                            else
+                            {
+                                return BadRequest("Yazdırma İşlemi Başarısız Oldu");
+                            }
+                        }
+
+                        else
+                        {
+                            throw new Exception("result2 değeri false döndü");
+
+                        }
+                    } 
+                }
+                else if (model.InvoiceModel == 3)//satış faturası
+                {
+                    if ( model.InvoiceType == false) //IADE 
+                    {
+                        bool result2 = await _orderService.AutoInvoice(model.OrderNo, "usp_GetOrderForInvoiceToplu_WS2",model);
+
+                        if (result2)
+                        {
+
+                            //FATURALAŞTIRMA İŞLEMİ YAPILMASI LAZIM
+                            bool result3 = await _orderService.GenerateReceipt(productIds); // SİPARİŞ FATURASI YAZDIRILIYOR...
+                            if (result3)
+                            {
+                                return Ok("İşlem Başarılı");
+
+                            }
+                            else
+                            {
+                                return BadRequest("Yazdırma İşlemi Başarısız Oldu");
+                            }
+                        }
+                        else
+                        {
+                            throw new Exception("result2 değeri false döndü");
+
+                        }
+                    }
+                    else if (model.InvoiceType == true) // IADE
+                    {
+                        bool result2 = await _orderService.AutoInvoice(model.OrderNo, "usp_GetOrderForInvoiceToplu_WS2",model);
+
+                        if (result2)
+                        {
+
+                            //FATURALAŞTIRMA İŞLEMİ YAPILMASI LAZIM
+                            bool result3 = await _orderService.GenerateReceipt(productIds); // SİPARİŞ FATURASI YAZDIRILIYOR...
+                            if (result3)
+                            {
+                                return Ok("İşlem Başarılı");
+
+                            }
+                            else
+                            {
+                                return BadRequest("Yazdırma İşlemi Başarısız Oldu");
+                            }
+                        }
+                        else
+                        {
+                            throw new Exception("result2 değeri false döndü");
+
+                        }
                     }
                 }
+                else if (model.InvoiceModel == 4)//satış sipariş faturası 
+                {
+                    if (model.OrderNo.Contains("WS") && model.InvoiceType == false) //ve  invoiceType == true ise 
+                    {
+                        bool result2 = await _orderService.AutoInvoice(model.OrderNo, "usp_GetOrderForInvoiceToplu_WS",model);
+
+                        if (result2)
+                        {
+
+                            //FATURALAŞTIRMA İŞLEMİ YAPILMASI LAZIM
+                            bool result3 = await _orderService.GenerateReceipt(productIds); // SİPARİŞ FATURASI YAZDIRILIYOR...
+                            if (result3)
+                            {
+                                return Ok("İşlem Başarılı");
+
+                            }
+                            else
+                            {
+                                return BadRequest("Yazdırma İşlemi Başarısız Oldu");
+                            }
+                        }
+                        else
+                        {
+                            throw new Exception("result2 değeri false döndü");
+
+                        }
+                    }
+                    else if (model.OrderNo.Contains("R") && model.InvoiceType == false)
+                    {
+                        bool result2 = await _orderService.AutoInvoice(model.OrderNo, "usp_GetOrderForInvoiceToplu_R",model);
+                        if (result2)
+                        {
+
+                            //FATURALAŞTIRMA İŞLEMİ YAPILMASI LAZIM
+                            bool result3 = await _orderService.GenerateReceipt(productIds); // SİPARİŞ FATURASI YAZDIRILIYOR...
+                            if (result3)
+                            {
+                                return Ok("İşlem Başarılı");
+
+                            }
+                            else
+                            {
+                                return BadRequest("Yazdırma İşlemi Başarısız Oldu");
+                            }
+                        }
+                        else
+                        {
+                            throw new Exception("result2 değeri false döndü");
+
+
+                        }
+                    }
+                }
+                else if (model.InvoiceModel == 5)//satış iade  faturası 
+                {
+
+                }
+                else
+                {
+
+                }
+
+                
+                
 
 
                 return BadRequest();
@@ -568,6 +724,28 @@ namespace GoogleAPI.API.Controllers
 
             }
 
+        }
+
+        [HttpGet("GetSalesPersonModels")]
+        public async Task<IActionResult> GetSalesPersonModels( )
+        {
+            try
+            {
+                List<SalesPersonModel> list  = await  _orderService.GetAllSalesPersonModels();
+                if (list.Count < 1)
+                {
+                    return BadRequest("Satış Elemanlarının Listesi Boş Geldi");
+                }
+                else
+                {
+                    return Ok(list);
+                }
+            }
+            catch (Exception ex)
+            {
+
+                return BadRequest(ErrorTextBase + ex.Message);
+            }
         }
 
     }

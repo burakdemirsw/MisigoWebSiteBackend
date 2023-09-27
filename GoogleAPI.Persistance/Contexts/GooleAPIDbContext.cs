@@ -26,7 +26,7 @@ namespace GoogleAPI.Persistance.Contexts
             modelBuilder.Entity<OfficeModel>().HasNoKey();
             modelBuilder.Entity<WarehouseOfficeModel>().HasNoKey();
             modelBuilder.Entity<WarehosueOperationListModel>().HasNoKey();
-            modelBuilder.Entity<WarehosueOperationDetailModel>().HasNoKey();
+            modelBuilder.Entity<WarehouseOperationDetailModel>().HasNoKey();
             modelBuilder.Entity<InvoiceNumberModel>().HasNoKey(); 
             modelBuilder.Entity<RemainingProductsModel>().HasNoKey(); 
             modelBuilder.Entity<CountProductRequestModel>().HasNoKey();
@@ -35,12 +35,14 @@ namespace GoogleAPI.Persistance.Contexts
             modelBuilder.Entity<CustomerModel>().HasNoKey();
             modelBuilder.Entity<OrderData>().HasNoKey();
             modelBuilder.Entity<CreatePurchaseInvoice>().HasNoKey();
-
+            modelBuilder.Entity<SalesPersonModel>().HasNoKey();
             modelBuilder.Entity<Domain.Models.NEBIM.Order.Invoice>().HasNoKey(); 
 
 
         }
         //OrderBillingModel WarehouseFormModel EInvoiceModel
+        public DbSet<SalesPersonModel>? SalesPersonModels { get; set; } //WarehosueOperationDetail
+
         public DbSet<EInvoiceModel>? ztEInvoiceModel { get; set; } //WarehosueOperationDetail
         public DbSet<CreatePurchaseInvoice>? ztCreatePurchaseInvoice { get; set; } //WarehosueOperationDetail
 
@@ -49,7 +51,7 @@ namespace GoogleAPI.Persistance.Contexts
         public DbSet<RecepieModel>? ztRecepieModel { get; set; } //WarehosueOperationDetail
         public DbSet<Domain.Models.NEBIM.Order.Invoice>? ztInvoice { get; set; } //WarehosueOperationDetail
         public DbSet<WarehosueOperationListModel>? ztWarehosueOperationListModel { get; set; } //WarehosueOperationDetail
-        public DbSet<WarehosueOperationDetailModel>? ztWarehosueOperationDetail { get; set; } //
+        public DbSet<WarehouseOperationDetailModel>? ztWarehosueOperationDetail { get; set; } //
         public DbSet<OrderBillingModel>? ztOrderBillingModel { get; set; }
         public DbSet<ProductOfOrderModel>? ztProductOfOrderModel { get; set; }
 

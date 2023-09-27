@@ -1,4 +1,6 @@
-﻿using System;
+﻿using GoogleAPI.Domain.Models.NEBIM.Invoice;
+using GoogleAPI.Domain.Models.NEBIM.Order;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -21,9 +23,9 @@ namespace GooleAPI.Application.Abstractions
         public void PrintInvoice(string HtmlPath);
 
         public  Task<Boolean> GenerateReceipt(List<string> orderNumbers);
-        public Task<Boolean> AutoInvoice(string orderNumber,string procedureName);
+        public Task<Boolean> AutoInvoice(string orderNumber,string procedureName,OrderBillingRequestModel model);
         public Task<string> ConnectIntegrator( );
-
+        public Task<List<SalesPersonModel>> GetAllSalesPersonModels( );
 
 
 

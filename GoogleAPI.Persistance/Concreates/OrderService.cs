@@ -16,13 +16,22 @@ using Remotion.Linq.Clauses;
 using System.Net;
 using System.Text;
 using GoogleAPI.Domain.Models.NEBIM.Invoice;
+using System.Runtime.CompilerServices;
 
 namespace GoogleAPI.Persistance.Concretes
 {
     public class OrderService : IOrderService  // IOrderService bir arayüz olabilir, işlevinizi tanımlar
     {
 
-        
+        private  GooleAPIDbContext _context;
+        public OrderService(
+          GooleAPIDbContext context
+         
+       )
+        {
+       
+            _context = context;
+        }
 
 
         public Task<Bitmap> GetOrderDetailsFromQrCode(string data)
@@ -117,7 +126,7 @@ namespace GoogleAPI.Persistance.Concretes
             }
             catch (Exception ex)
             {
-                throw new Exception($"Yazdırma Aşamasında Hata Alındı : {ex.Message} {ex.StackTrace}");
+                throw new Exception($"Yazdırma Aşamasında Hata Alındı : {ex.Message}  ");
 
                 
             }
@@ -154,7 +163,7 @@ namespace GoogleAPI.Persistance.Concretes
             catch (Exception ex)
             {
 
-                throw new Exception($"Yazdırma Aşamasında Hata Alındı (PrintInvoice): {ex.Message} {ex.StackTrace}");
+                throw new Exception($"Yazdırma Aşamasında Hata Alındı (PrintInvoice): {ex.Message}  ");
             }
 
 
@@ -183,10 +192,8 @@ namespace GoogleAPI.Persistance.Concretes
 
                     Image barcodeBitmap = QrCode(order);
                     string barcodeBase64 = ConvertImageToBase64(barcodeBitmap);
-
                     string EInvoiceNumber = order;
-                        ;
-
+                       
                     RecepieModel recepie = new RecepieModel();
                     recepie.EInvoiceNumber = EInvoiceNumber;
                     recepie.OrderNo = order;
@@ -247,24 +254,20 @@ namespace GoogleAPI.Persistance.Concretes
             }
                 catch (Exception ex)
                 {
-                throw new Exception($"Yazdırma Aşamasında Hata Alındı : {ex.Message} {ex.StackTrace}");
+                throw new Exception($"Yazdırma Aşamasında Hata Alındı : {ex.Message}  ");
 
                 return false;
                 }
 
         }
-        public async Task<Boolean> AutoInvoice(string orderNumber,string procedureName)
+        public async Task<Boolean> AutoInvoice(string orderNumber,string procedureName, OrderBillingRequestModel requestModel)
         {
             List<OrderData> OrderDataList = new List<OrderData>();
             try
             {
-                DbContextOptionsBuilder<GooleAPIDbContext> dbContextBuilder = new();
-                dbContextBuilder.UseSqlServer("Data Source=192.168.2.36;Initial Catalog=BDD2017;User ID=sa;Password=8969;TrustServerCertificate=True;");
-                GooleAPIDbContext _context = new GooleAPIDbContext(dbContextBuilder.Options);
+            
 
-                //iyileştirme yapılcak
-
-                string query = $"exec {procedureName} '{orderNumber}'";
+                string query = $"exec {procedureName} '{orderNumber}'"; 
                 using (var _db = _context)
                 {
                     OrderDataList = _db.ztOrderData
@@ -272,7 +275,11 @@ namespace GoogleAPI.Persistance.Concretes
                         .ToList();
 
 
-
+                    if (OrderDataList.Count == 0)
+                    {
+                        throw new Exception("OrderDataList Null Geldi");
+                      
+                    }
                     List<OrderDataModel> orderDataList = new List<OrderDataModel>();
 
                     if (OrderDataList.Count > 0)
@@ -281,11 +288,9 @@ namespace GoogleAPI.Persistance.Concretes
                         foreach (var orderData in OrderDataList)
                         {
 
-
                             // Lines verisini JSON'dan List<OrderLine> nesnesine çevirme
 
-                        
-
+                  
                             List<OrderLine> lines = null;
                             if (orderData.Lines != null)
                             {
@@ -388,128 +393,381 @@ namespace GoogleAPI.Persistance.Concretes
 
                         foreach (var orderData in orderDataList)
                         {
-                            object jsonModel;
-
-
-                            if (orderNumber.Contains("WS"))
+                            object jsonModel = new();
+                            if (requestModel.InvoiceModel == 1)  //ALIŞ FATURASI  (oluşturulmamış)
                             {
-                                var jsonModel2 = new
+                                if (requestModel.InvoiceType == true)
                                 {
-                                    ModelType = 7,
-                                    CustomerCode = orderData.CurrAccCode,
-                                    PosTerminalID = 1,
-                                    TaxTypeCode = orderData.TaxTypeCode,
-                                    InvoiceDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
-                                    Description = orderData.InternalDescription, //siparisNo
-                                    InternalDescription = orderData.InternalDescription, //siparisNo
-                                    IsOrderBase = false,
-                                    ShipmentMethodCode = orderData.ShipmentMethodCode,
-
-                                    CompanyCode = orderData.CompanyCode,
-
-                                    EMailAddress = orderData.EMailAddress,
-                                    BillingPostalAddressID = orderData.BillingPostalAddressID,
-                                    ShippingPostalAddressID = orderData.ShippingPostalAddressID,
-                                    OfficeCode = orderData.OfficeCode,
-                                    WareHouseCode = orderData.WareHouseCode,
-
-                                    Lines = orderData.Lines,
-
-                                    IsCompleted = true
-                                };
-                                jsonModel = jsonModel2;
-
-                            }
-                            else if(orderNumber.Contains("R"))
-                            {
-                                var jsonModel1 = new
-                                {
-                                    ModelType = 8,
-                                    CustomerCode = orderData.CurrAccCode,
-                                    PosTerminalID = 1,
-                                    InvoiceDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
-                                    Description = orderData.InternalDescription, //siparisNo
-                                    InternalDescription = orderData.InternalDescription, //siparisNo
-                                    IsOrderBase = true,
-                                    ShipmentMethodCode = orderData.ShipmentMethodCode,
-                                    DeliveryCompanyCode = orderData.DeliveryCompanyCode,
-                                    CompanyCode = orderData.CompanyCode,
-                                    IsSalesViaInternet = true,
-                                    SendInvoiceByEMail = true,
-                                    EMailAddress = orderData.EMailAddress,
-                                    BillingPostalAddressID = orderData.BillingPostalAddressID,
-                                    ShippingPostalAddressID = orderData.ShippingPostalAddressID,
-                                    OfficeCode = orderData.OfficeCode,
-                                    WareHouseCode = orderData.WareHouseCode,
-                                    ApplyCampaign = false,
-                                    SuppressItemDiscount = false,
-                                    Lines = orderData.Lines,
-                                    SalesViaInternetInfo = new
+                                    List<OrderLineBP> lineList = new List<OrderLineBP>();
+                                    foreach (OrderLine line in orderData.Lines)
                                     {
-                                        SalesURL = "www.davye.com",
-                                        PaymentTypeDescription = orderData.Payments
-                                      .First()
-                                      .CreditCardTypeCode,
-                                        PaymentTypeCode = orderData.Payments.First().PaymentType,
-                                        PaymentAgent = "",
-                                        PaymentDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
-                                        SendDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
-                                    },
-                                    IsCompleted = true
-                                };
-                                jsonModel = jsonModel1;
-                            }
-                            else
-                            {
-                                List<OrderLineBP> lineList = new List<OrderLineBP>();
-                                foreach (OrderLine line in orderData.Lines)
-                                {
-                                    OrderLineBP orderLineBP = new OrderLineBP
+                                        OrderLineBP orderLineBP = new OrderLineBP
+                                        {
+                                            UsedBarcode = line.UsedBarcode,
+                                            BatchCode = line.BatchCode,
+                                            ITAttributes = line.ITAttributes,
+                                            LDisRate1 = line.LDisRate1,
+                                            VatRate = line.VatRate,
+                                            PriceVI = line.PriceVI,
+                                            AmountVI = line.AmountVI,
+                                            Qty1 = line.Qty1
+                                        };
+
+                                        lineList.Add(orderLineBP);
+                                    }
+                                    var jsonModel1 = new
                                     {
-                                        UsedBarcode = line.UsedBarcode,
-                                        BatchCode = line.BatchCode,
-                                        ITAttributes = line.ITAttributes,
-                                        LDisRate1 = line.LDisRate1,
-                                        VatRate = line.VatRate,
-                                        PriceVI = line.PriceVI,
-                                        AmountVI = line.AmountVI,
-                                        Qty1 = line.Qty1
+                                        ModelType = 19,
+                                        VendorCode = orderData.CurrAccCode,
+                                        EInvoicenumber = orderData.EInvoicenumber,
+                                        PosTerminalID = 1,
+                                        IsReturn = true, //IADE
+                                        TaxTypeCode = orderData.TaxTypeCode,
+                                        InvoiceDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
+                                        Description = orderData.InternalDescription, //siparisNo
+                                        InternalDescription = orderData.InternalDescription, //siparisNo
+                                        IsOrderBase = false,
+                                        ShipmentMethodCode = orderData.ShipmentMethodCode,
+                                        CompanyCode = orderData.CompanyCode,
+                                        EMailAddress = orderData.EMailAddress,
+                                        BillingPostalAddressID = orderData.BillingPostalAddressID,
+                                        ShippingPostalAddressID = orderData.ShippingPostalAddressID,
+                                        OfficeCode = orderData.OfficeCode,
+                                        WareHouseCode = orderData.WareHouseCode,
+
+                                        Lines = lineList,
+
+                                        IsCompleted = true
                                     };
-
-                                    lineList.Add(orderLineBP);
-                                }
-                                var jsonModel3 = new
+                                    jsonModel = jsonModel1;
+                                } //ALIŞ İADE FATURASI 
+                                else
                                 {
-                                    ModelType = 19,
-                                    VendorCode = orderData.CurrAccCode,
-                                    EInvoicenumber = orderData.EInvoicenumber,
-                                    PosTerminalID = 1,
-                                    TaxTypeCode = orderData.TaxTypeCode,
-                                    InvoiceDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
-                                    Description = orderData.InternalDescription, //siparisNo
-                                    InternalDescription = orderData.InternalDescription, //siparisNo
-                                    IsOrderBase = false,
-                                    ShipmentMethodCode = orderData.ShipmentMethodCode,
+                                    List<OrderLineBP> lineList = new List<OrderLineBP>();
+                                    foreach (OrderLine line in orderData.Lines)
+                                    {
+                                        OrderLineBP orderLineBP = new OrderLineBP
+                                        {
+                                            UsedBarcode = line.UsedBarcode,
+                                            BatchCode = line.BatchCode,
+                                            ITAttributes = line.ITAttributes,
+                                            LDisRate1 = line.LDisRate1,
+                                            VatRate = line.VatRate,
+                                            PriceVI = line.PriceVI,
+                                            AmountVI = line.AmountVI,
+                                            Qty1 = line.Qty1
+                                        };
 
-                                    CompanyCode = orderData.CompanyCode,
+                                        lineList.Add(orderLineBP);
+                                    }
+                                    var jsonModel2 = new
+                                    {
+                                        ModelType = 19,
+                                        VendorCode = orderData.CurrAccCode,
+                                        EInvoicenumber = orderData.EInvoicenumber,
+                                        PosTerminalID = 1,
+                                        TaxTypeCode = orderData.TaxTypeCode,
+                                        InvoiceDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
+                                        Description = orderData.InternalDescription, //siparisNo
+                                        InternalDescription = orderData.InternalDescription, //siparisNo
+                                        IsOrderBase = false,
+                                        ShipmentMethodCode = orderData.ShipmentMethodCode,
 
-                                    EMailAddress = orderData.EMailAddress,
-                                    BillingPostalAddressID = orderData.BillingPostalAddressID,
-                                    ShippingPostalAddressID = orderData.ShippingPostalAddressID,
-                                    OfficeCode = orderData.OfficeCode,
-                                    WareHouseCode = orderData.WareHouseCode,
+                                        CompanyCode = orderData.CompanyCode,
 
-                                    Lines = lineList,
+                                        EMailAddress = orderData.EMailAddress,
+                                        BillingPostalAddressID = orderData.BillingPostalAddressID,
+                                        ShippingPostalAddressID = orderData.ShippingPostalAddressID,
+                                        OfficeCode = orderData.OfficeCode,
+                                        WareHouseCode = orderData.WareHouseCode,
 
-                                    IsCompleted = true
-                                };
-                                jsonModel = jsonModel3;
+                                        Lines = lineList,
+
+                                        IsCompleted = true
+                                    };
+                                    jsonModel = jsonModel2;
+                                } //ALIŞ FATURASI 
+
+
                             }
+                            else if (requestModel.InvoiceModel == 2)
+                            {
+                                 if(requestModel.InvoiceType == false)
+                                {
+                                    List<OrderLineBP> lineList = new List<OrderLineBP>();
+                                    foreach (OrderLine line in orderData.Lines)
+                                    {
+                                        OrderLineBP orderLineBP = new OrderLineBP
+                                        {
+                                            UsedBarcode = line.UsedBarcode,
+                                            BatchCode = line.BatchCode,
+                                            ITAttributes = line.ITAttributes,
+                                            LDisRate1 = line.LDisRate1,
+                                            VatRate = line.VatRate,
+                                            PriceVI = line.PriceVI,
+                                            AmountVI = line.AmountVI,
+                                            Qty1 = line.Qty1
+                                        };
+
+                                        lineList.Add(orderLineBP);
+                                    }
+                                    var jsonModel3 = new
+                                    {
+                                        ModelType = 19,
+                                        VendorCode = orderData.CurrAccCode,
+                                        EInvoicenumber = orderData.EInvoicenumber,
+                                        PosTerminalID = 1,
+                                        TaxTypeCode = orderData.TaxTypeCode,
+                                        InvoiceDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
+                                        Description = orderData.InternalDescription, //siparisNo
+                                        InternalDescription = orderData.InternalDescription, //siparisNo
+                                        IsOrderBase = false,
+                                        ShipmentMethodCode = orderData.ShipmentMethodCode,
+                                        CompanyCode = orderData.CompanyCode,
+                                        EMailAddress = orderData.EMailAddress,
+                                        BillingPostalAddressID = orderData.BillingPostalAddressID,
+                                        ShippingPostalAddressID = orderData.ShippingPostalAddressID,
+                                        OfficeCode = orderData.OfficeCode,
+                                        WareHouseCode = orderData.WareHouseCode,
+
+                                        Lines = lineList,
+
+                                        IsCompleted = true
+                                    };
+                                    jsonModel = jsonModel3;
+                                }
+                            } //ALIŞ SİPARİŞ FATURASI 
+                            else if (requestModel.InvoiceModel == 3)
+                            {
+                               if(orderData.Lines[0].SalesPersonCode==null)
+                                {
+                                    foreach (var item in orderData.Lines)
+                                    {
+                                        item.SalesPersonCode = requestModel.SalesPersonCode;
+                                        item.DocCurrencyCode = requestModel.Currency;
+                                    }
+                                }
+                                    if (requestModel.InvoiceType == false)
+                                    {
+                                        var jsonModel6 = new
+                                        {
+                                            ModelType = 7,
+                                            CustomerCode = orderData.CurrAccCode,
+                                            PosTerminalID = 1,
+                                            TaxTypeCode = orderData.TaxTypeCode,
+                                            InvoiceDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
+                                            Description = orderData.InternalDescription, //siparisNo
+                                            InternalDescription = orderData.InternalDescription, //siparisNo
+                                            IsOrderBase = false,
+                                            ShipmentMethodCode = orderData.ShipmentMethodCode,
+                                            CompanyCode = orderData.CompanyCode,
+                                            EMailAddress = orderData.EMailAddress,
+                                            BillingPostalAddressID = orderData.BillingPostalAddressID,
+                                            ShippingPostalAddressID = orderData.ShippingPostalAddressID,
+                                            OfficeCode = orderData.OfficeCode,
+                                            WareHouseCode = orderData.WareHouseCode,
+                                            Lines = orderData.Lines,
+                                            IsCompleted = true
+                                        };
+                                        jsonModel = jsonModel6;
+
+                                    }
+                              
+                                    else
+                                    {
+                                        if (requestModel.InvoiceType == true)
+                                        {
+                                                if (orderData.Lines[0].SalesPersonCode == null)
+                                                {
+                                                    foreach (var item in orderData.Lines)
+                                                    {
+                                                        item.SalesPersonCode = requestModel.SalesPersonCode;
+                                                        item.DocCurrencyCode = requestModel.Currency;
+                                                    }
+                                                }
 
 
+                                        var jsonModel7 = new
+                                            {
+                                                ModelType = 7,
+                                                CustomerCode = orderData.CurrAccCode,
+                                                PosTerminalID = 1,
+                                                IsReturn= true,
+                                                TaxTypeCode = orderData.TaxTypeCode,
+                                                InvoiceDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
+                                                Description = orderData.InternalDescription, //siparisNo
+                                                InternalDescription = orderData.InternalDescription, //siparisNo
+                                                IsOrderBase = false,
+                                                ShipmentMethodCode = orderData.ShipmentMethodCode,
+                                                CompanyCode = orderData.CompanyCode,
+                                                EMailAddress = orderData.EMailAddress,
+                                                BillingPostalAddressID = orderData.BillingPostalAddressID,
+                                                ShippingPostalAddressID = orderData.ShippingPostalAddressID,
+                                                OfficeCode = orderData.OfficeCode,
+                                                WareHouseCode = orderData.WareHouseCode,
+                                                Lines = orderData.Lines,
+                                                IsCompleted = true
+                                            };
+                                            jsonModel = jsonModel7;
 
+                                        }
+                                    }
+                            } //SATIŞ FATURASI  (oluşturulmamış)
+                            else if (requestModel.InvoiceModel == 4)//SATIŞ SİPARİŞ FATURASI
+                            {
+                                if (orderNumber.Contains("WS"))
+                                {
+                                    if (requestModel.InvoiceType == true)
+                                    {
+                                        if (orderNumber.Contains("WS") && requestModel.InvoiceType == false)
+                                        {
+                                            var jsonModel6 = new
+                                            {
+                                                ModelType = 7,
+                                                CustomerCode = orderData.CurrAccCode,
+                                                PosTerminalID = 1,
+                                                IsUdtReturn = true,
+                                                TaxTypeCode = orderData.TaxTypeCode,
+                                                InvoiceDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
+                                                Description = orderData.InternalDescription, //siparisNo
+                                                InternalDescription = orderData.InternalDescription, //siparisNo
+                                                IsOrderBase = false,
+                                                ShipmentMethodCode = orderData.ShipmentMethodCode,
+                                                CompanyCode = orderData.CompanyCode,
+                                                EMailAddress = orderData.EMailAddress,
+                                                BillingPostalAddressID = orderData.BillingPostalAddressID,
+                                                ShippingPostalAddressID = orderData.ShippingPostalAddressID,
+                                                OfficeCode = orderData.OfficeCode,
+                                                WareHouseCode = orderData.WareHouseCode,
+                                                Lines = orderData.Lines,
+                                                IsCompleted = true
+                                            };
+                                            jsonModel = jsonModel6;
 
+                                        }
+                                    }//IADE
+                                    else
+                                    {
+                                        if (orderNumber.Contains("WS") && requestModel.InvoiceType == false)
+                                        {
+                                            var jsonModel7 = new
+                                            {
+                                                ModelType = 7,
+                                                CustomerCode = orderData.CurrAccCode,
+                                                PosTerminalID = 1,
+                                                TaxTypeCode = orderData.TaxTypeCode,
+                                                InvoiceDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
+                                                Description = orderData.InternalDescription, //siparisNo
+                                                InternalDescription = orderData.InternalDescription, //siparisNo
+                                                IsOrderBase = false,
+                                                ShipmentMethodCode = orderData.ShipmentMethodCode,
+                                                CompanyCode = orderData.CompanyCode,
+                                                EMailAddress = orderData.EMailAddress,
+                                                BillingPostalAddressID = orderData.BillingPostalAddressID,
+                                                ShippingPostalAddressID = orderData.ShippingPostalAddressID,
+                                                OfficeCode = orderData.OfficeCode,
+                                                WareHouseCode = orderData.WareHouseCode,
+                                                Lines = orderData.Lines,
+                                                IsCompleted = true
+                                            };
+                                            jsonModel = jsonModel7;
+
+                                        }
+                                    }
+                                }else if (orderNumber.Contains("R"))
+                                {
+                                    if (requestModel.InvoiceType == true)
+                                    {
+                                        var jsonModel7 = new
+                                        {
+                                            ModelType = 8,
+                                            CustomerCode = orderData.CurrAccCode,
+                                            PosTerminalID = 1,
+                                            IsReturn = true,
+                                            InvoiceDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
+                                            Description = orderData.InternalDescription, //siparisNo
+                                            InternalDescription = orderData.InternalDescription, //siparisNo
+                                            IsOrderBase = true,
+                                            ShipmentMethodCode = orderData.ShipmentMethodCode,
+                                            DeliveryCompanyCode = orderData.DeliveryCompanyCode,
+                                            CompanyCode = orderData.CompanyCode,
+                                            IsSalesViaInternet = true,
+                                            SendInvoiceByEMail = true,
+                                            EMailAddress = orderData.EMailAddress,
+                                            BillingPostalAddressID = orderData.BillingPostalAddressID,
+                                            ShippingPostalAddressID = orderData.ShippingPostalAddressID,
+                                            OfficeCode = orderData.OfficeCode,
+                                            WareHouseCode = orderData.WareHouseCode,
+                                            ApplyCampaign = false,
+                                            SuppressItemDiscount = false,
+                                            Lines = orderData.Lines,
+                                            SalesViaInternetInfo = new
+                                            {
+                                                SalesURL = "www.davye.com",
+                                                PaymentTypeDescription = orderData.Payments
+                                              .First()
+                                              .CreditCardTypeCode,
+                                                PaymentTypeCode = orderData.Payments.First().PaymentType,
+                                                PaymentAgent = "",
+                                                PaymentDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
+                                                SendDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
+                                            },
+                                            IsCompleted = true
+                                        };
+                                        jsonModel = jsonModel7;
+                                    }
+                                    else
+                                    {
+                                        var jsonModel8 = new
+                                        {
+                                            ModelType = 8,
+                                            CustomerCode = orderData.CurrAccCode,
+                                            PosTerminalID = 1,
+                                            InvoiceDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
+                                            Description = orderData.InternalDescription, //siparisNo
+                                            InternalDescription = orderData.InternalDescription, //siparisNo
+                                            IsOrderBase = true,
+                                            ShipmentMethodCode = orderData.ShipmentMethodCode,
+                                            DeliveryCompanyCode = orderData.DeliveryCompanyCode,
+                                            CompanyCode = orderData.CompanyCode,
+                                            IsSalesViaInternet = true,
+                                            SendInvoiceByEMail = true,
+                                            EMailAddress = orderData.EMailAddress,
+                                            BillingPostalAddressID = orderData.BillingPostalAddressID,
+                                            ShippingPostalAddressID = orderData.ShippingPostalAddressID,
+                                            OfficeCode = orderData.OfficeCode,
+                                            WareHouseCode = orderData.WareHouseCode,
+                                            ApplyCampaign = false,
+                                            SuppressItemDiscount = false,
+                                            Lines = orderData.Lines,
+                                            SalesViaInternetInfo = new
+                                            {
+                                                SalesURL = "www.davye.com",
+                                                PaymentTypeDescription = orderData.Payments
+                                              .First()
+                                              .CreditCardTypeCode,
+                                                PaymentTypeCode = orderData.Payments.First().PaymentType,
+                                                PaymentAgent = "",
+                                                PaymentDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
+                                                SendDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
+                                            },
+                                            IsCompleted = true
+                                        };
+                                        jsonModel = jsonModel8;
+                                    }
+
+                                }
+
+                            }
+                            else if (requestModel.InvoiceModel == 5)
+                            {
+                              
+                            }
+                            
+                           
                             var json = JsonConvert.SerializeObject(jsonModel);
+
+                            
 
                             string sessionID = await ConnectIntegrator();
 
@@ -524,12 +782,21 @@ namespace GoogleAPI.Persistance.Concretes
                                     $"http://192.168.2.36:7676/(S({sessionID}))/IntegratorService/post?",
                                     content
                                 );
-                                var result = await response.Content.ReadAsStringAsync() ;
-                                JObject jsonResponse = JObject.Parse(result);
-                                string eInvoiceNumber = jsonResponse["EInvoiceNumber"].ToString();
-                                string UnofficialInvoiceString = jsonResponse[
-                                    "UnofficialInvoiceString"
-                                ].ToString();
+
+                                string result = null;
+                                if (response != null && response.Content != null)
+                                {
+                                     result = await response.Content.ReadAsStringAsync();
+
+                                }
+                                else
+                                {
+                                    throw new Exception("İstek Sırasında Hata Alındı!");
+                                }
+
+
+
+
                                 OrderErrorModel errorModel =
                                     JsonConvert.DeserializeObject<OrderErrorModel>(result);
                                 if (
@@ -537,10 +804,24 @@ namespace GoogleAPI.Persistance.Concretes
                                     || errorModel.StatusCode == 400
                                 )
                                 {
-                                    return false;
+                                    result = await response.Content.ReadAsStringAsync();
+                                    InvoiceErrorResponseModel model = JsonConvert.DeserializeObject<InvoiceErrorResponseModel>(result);
+                                    throw new Exception(model.ExceptionMessage);
+
+                                   // return false;
                                 }
                                 if (response.IsSuccessStatusCode)
                                 {
+
+                                    JObject jsonResponse = JObject.Parse(result);
+
+                                    string eInvoiceNumber = jsonResponse["EInvoiceNumber"].ToString();
+
+                                    string UnofficialInvoiceString = jsonResponse[
+                                        "UnofficialInvoiceString"
+                                    ].ToString();
+
+
                                     string successMessage =
                                         $"{orderData.OrderNumber}  {eInvoiceNumber}  {DateTime.Now.ToString()}: Success";
 
@@ -580,7 +861,7 @@ namespace GoogleAPI.Persistance.Concretes
                                         catch (Exception ex)
                                         {
                                             return false;
-                                            throw new Exception($"Faturalaştırma Aşamasında Hata Alındı : {ex.Message} {ex.StackTrace}");
+                                            throw new Exception($"Faturalaştırma Aşamasında Hata Alındı : {ex.Message}  ");
                                         }
 
 
@@ -597,12 +878,13 @@ namespace GoogleAPI.Persistance.Concretes
                     return false;
                 }
             }
-            catch (Exception ex)
+                catch (Exception ex)
             {
-                throw new Exception($"Faturalaştırma Aşamasında Hata Alındı : {ex.Message} {ex.StackTrace}");
+                throw new Exception($"Faturalaştırma Aşamasında Hata Alındı : {ex.Message}  ");
                 return false;
             }
         }
+      
         public async Task<string> ConnectIntegrator( )
         {
             try
@@ -626,6 +908,23 @@ namespace GoogleAPI.Persistance.Concretes
             {
 
                 return null;
+            }
+        }
+
+
+        public async Task<List<SalesPersonModel>> GetAllSalesPersonModels( )
+        {
+            try
+            {
+            List<SalesPersonModel>  list  = _context.SalesPersonModels.FromSqlRaw("Select * from cdSalesperson").AsEnumerable().ToList();
+                
+                return list;
+
+            }
+            catch (Exception ex)
+            {
+                
+                throw ex;
             }
         }
 

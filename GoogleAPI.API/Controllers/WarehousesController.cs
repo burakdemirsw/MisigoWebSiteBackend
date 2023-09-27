@@ -1,5 +1,7 @@
 ﻿using GoogleAPI.Domain.Models;
 using GoogleAPI.Domain.Models.NEBIM;
+using GoogleAPI.Domain.Models.NEBIM.Invoice;
+using GoogleAPI.Domain.Models.NEBIM.Order;
 using GoogleAPI.Domain.Models.NEBIM.Product;
 using GoogleAPI.Domain.Models.NEBIM.Warehouse;
 using GoogleAPI.Persistance.Contexts;
@@ -69,7 +71,6 @@ namespace GoogleAPI.API.Controllers
                     JsonConvert.DeserializeObject<HttpConnectionRequestModel>(responseBody);
 
                 string sessionId = session.SessionId;
-                // Console.WriteLine(responseBody);
                 return sessionId;
             }
             catch (HttpRequestException ex)
@@ -99,22 +100,46 @@ namespace GoogleAPI.API.Controllers
         }
       
         [HttpPost("TransferProducts")] //seçilen ürünleri depolar arası transfer eder
-        public async Task<IActionResult> TransferProducts(WarehouseFormModel item)
+        public async Task<IActionResult> TransferProducts(List<WarehouseFormModel> item)
         {
+            List<NebimWarehouseTransferLineModel> TransferLineModelList = new List<NebimWarehouseTransferLineModel>();
+            foreach (WarehouseFormModel form in item)
+            {
+                NebimWarehouseTransferLineModel nebimWarehouseTransferLineModel = new NebimWarehouseTransferLineModel()
+                {
+                    ItemTypeCode = 1,
+                    UsedBarcode = form.Barcode,
+                    ItemCode = form.ItemCode,
+                    ColorCode = form.ColorCode,
+                    ItemDim1Code = form.ItemDim1Code,
+                    BatchCode = form.Party,
+                    Qty1 = form.Inventory,
+                    ITAttributes = new List<NebimWarehouseTransferITAttributeModel>()
+                            {
+                                new NebimWarehouseTransferITAttributeModel()
+                                {
+                                    AttributeCode = form.ShelfNo,
+                                    AttributeTypeCode = 1
+                                },
+
+                            }
+                };
+                TransferLineModelList.Add(nebimWarehouseTransferLineModel);
+
+            }
             try
             {
-
                 NebimWarehouseTransferModel jsonModel = new NebimWarehouseTransferModel()
                 {
                     ModelType = 109,
                     InnerNumber = "",
-                    OfficeCode = item.Office,
+                    OfficeCode = item[0].Office,
                     OperationDate = DateTime.Now.ToString(),
                     StoreCode = "",
-                    ToOfficeCode = item.OfficeTo,
+                    ToOfficeCode = item[0].OfficeTo,
                     ToStoreCode = "",
-                    ToWarehouseCode = item.WarehouseTo,
-                    WarehouseCode = item.Warehouse,
+                    ToWarehouseCode = item[0].WarehouseTo,
+                    WarehouseCode = item[0].Warehouse,
                     CompanyCode = 1,
                     InnerProcessType = 4,
                     IsCompleted = true,
@@ -124,50 +149,53 @@ namespace GoogleAPI.API.Controllers
                     IsPrinted = false,
                     IsReturn = false,
                     IsTransferApproved = true,
-                    Lines = new List<NebimWarehouseTransferLineModel>()
-                    {
-                        new NebimWarehouseTransferLineModel()
-                        {
-                            ItemTypeCode = 1,
-                            UsedBarcode = item.Barcode,
-                            ItemCode = item.ItemCode,
-                            ColorCode = item.ColorCode,
-                            ItemDim1Code = item.ItemDim1Code,
-                            BatchCode =  item.Party,
-                            Qty1 = 10,
-                            ITAttributes = new List<NebimWarehouseTransferITAttributeModel>()
-                            {
-                                new NebimWarehouseTransferITAttributeModel()
-                                {
-                                    AttributeCode = item.ShelfNo,
-                                    AttributeTypeCode = 1
-                                },
-
-                            }
-                        }
-                    }
+                    Lines = TransferLineModelList
 
                 };
                 var json = JsonConvert.SerializeObject(jsonModel);
-                string sessionID = await ConnectIntegrator();
+               
 
                 using (var httpClient = new HttpClient())
                 {
                     var content = new StringContent(json, Encoding.UTF8, "application/json");
+                    string sessionID = await ConnectIntegrator();
+                    if (sessionID != null)
+                    {
+                        var response = await httpClient.PostAsync($"http://192.168.2.36:7676/(S({sessionID}))/IntegratorService/post?", content);
 
-                    var response = await httpClient.PostAsync($"http://192.168.2.36:7676/(S({sessionID}))/IntegratorService/post?", content);
+                        if (response != null)
+                        {
+                            var result = await response.Content.ReadAsStringAsync();
 
-                    var result = await response.Content.ReadAsStringAsync();
+                            JObject jsonResponse = JObject.Parse(result);
 
-                    JObject jsonResponse = JObject.Parse(result);
+                            if (jsonResponse != null && (int)jsonResponse["ModelType"] == 0)
+                            {
+                                    return BadRequest(jsonResponse);
+                            }
+                            else
+                            {
+                                return Ok(jsonResponse);
+                            }
+
+
+                        }
+                        else
+                        {
+                            return BadRequest("Response Alınamadı");
+                        }
+
+                    }
+                    else
+                    {
+                        return BadRequest("SessionId Alınamadı");
+                    }
+                    
+   
                 }
-
-                return Ok();
-
             }
             catch (Exception ex)
             {
-
                 return BadRequest(ErrorTextBase + ex.Message);
             }
         }
@@ -187,12 +215,12 @@ namespace GoogleAPI.API.Controllers
                 return BadRequest(ErrorTextBase + ex.Message);
             }
         }
-        [HttpGet("GetWarehosueOperationList")] //yapılan  depo işlemlerinden tamamlamayanları çeker
+        [HttpGet("GetWarehosueOperationList")] 
         public IActionResult GetWarehosueOperationList( )
         {
             try
             {
-                List<WarehosueOperationListModel> saleOrderModel = _context.ztWarehosueOperationListModel.FromSqlRaw("select * from ztTransferOnayla where IsCompleted = 0").AsEnumerable().ToList();
+                List<WarehosueOperationListModel> saleOrderModel = _context.ztWarehosueOperationListModel.FromSqlRaw("select * from ztTransferOnayla where IsCompleted = 0 Order by InnerNumber desc").AsEnumerable().ToList();
 
                 return Ok(saleOrderModel);
             }
@@ -202,12 +230,12 @@ namespace GoogleAPI.API.Controllers
                 return BadRequest(ErrorTextBase + ex.Message);
             }
         }
-        [HttpGet("GetWarehouseOperationDetail/{innerNumber}")] // yapılan depo işlemini id ye göre çeker
+        [HttpGet("GetWarehouseOperationDetail/{innerNumber}")]
         public IActionResult GetWarehosueOperationDetail(string innerNumber)
         {
             try
             {
-                List<WarehosueOperationDetailModel> saleOrderModel = _context.ztWarehosueOperationDetail.FromSqlRaw($"exec   [Usp_GETTransferOnayla]'{innerNumber}'").AsEnumerable().ToList();
+                List<ProductOfOrderModel> saleOrderModel = _context.ztProductOfOrderModel.FromSqlRaw($"exec   [Usp_GETTransferOnayla]'{innerNumber}'").AsEnumerable().ToList();
 
                 return Ok(saleOrderModel);
             }
@@ -217,6 +245,8 @@ namespace GoogleAPI.API.Controllers
                 return BadRequest(ErrorTextBase + ex.Message);
             }
         }
+
+
 
         [HttpPost("SendNebımToTransferProduct")]//yapılan depo işlemi işlem numarasına göre direkt transfer eder
         public IActionResult SendNebımToTransferProduct(WarehouseOperationProduct model)
