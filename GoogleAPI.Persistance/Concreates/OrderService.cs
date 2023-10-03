@@ -114,8 +114,7 @@ namespace GoogleAPI.Persistance.Concretes
                 {
                     System.Drawing.Printing.PrintDocument printDocument = new System.Drawing.Printing.PrintDocument();
                     // Set margins to 0 
-                    printDocument.PrinterSettings.PrinterName = "Possify printer driver";
-                    printDocument.DefaultPageSettings.Margins = new System.Drawing.Printing.Margins(0, 0, 0, 0);
+                        printDocument.DefaultPageSettings.Margins = new System.Drawing.Printing.Margins(0, 0, 0, 0);
                     printDocument.PrintPage += (s, args) =>
                     {
                         args.Graphics.DrawImage(image, new System.Drawing.Point(0, 0));
@@ -365,6 +364,7 @@ namespace GoogleAPI.Persistance.Concretes
                                 TaxTypeCode = orderData.TaxTypeCode,
                                 OrderNumber = orderData.OrderNumber,
                                 OrderHeaderID = orderData.OrderHeaderID,
+                                DocCurrencyCode = orderData.DocCurrencyCode,
                                 Lines = lines,
                                 Payments = payments,
                                 CurrAccCode = orderData.CurrAccCode,
@@ -539,12 +539,14 @@ namespace GoogleAPI.Persistance.Concretes
                             } //ALIŞ SİPARİŞ FATURASI 
                             else if (requestModel.InvoiceModel == 3)
                             {
-                               if(orderData.Lines[0].SalesPersonCode==null)
+                                orderData.TaxTypeCode = Convert.ToInt32(requestModel.Currency);
+                                if (orderData.Lines[0].SalesPersonCode==null)
                                 {
+                                    
                                     foreach (var item in orderData.Lines)
                                     {
                                         item.SalesPersonCode = requestModel.SalesPersonCode;
-                                        item.DocCurrencyCode = requestModel.Currency;
+                                        item.DocCurrencyCode = orderData.DocCurrencyCode;
                                     }
                                 }
                                     if (requestModel.InvoiceType == false)
@@ -555,6 +557,7 @@ namespace GoogleAPI.Persistance.Concretes
                                             CustomerCode = orderData.CurrAccCode,
                                             PosTerminalID = 1,
                                             TaxTypeCode = orderData.TaxTypeCode,
+                                            DocCurrencyCode=orderData.DocCurrencyCode,
                                             InvoiceDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
                                             Description = orderData.InternalDescription, //siparisNo
                                             InternalDescription = orderData.InternalDescription, //siparisNo
@@ -582,7 +585,7 @@ namespace GoogleAPI.Persistance.Concretes
                                                     foreach (var item in orderData.Lines)
                                                     {
                                                         item.SalesPersonCode = requestModel.SalesPersonCode;
-                                                        item.DocCurrencyCode = requestModel.Currency;
+                                                        item.DocCurrencyCode = orderData.DocCurrencyCode;
                                                     }
                                                 }
 
@@ -594,6 +597,7 @@ namespace GoogleAPI.Persistance.Concretes
                                                 PosTerminalID = 1,
                                                 IsReturn= true,
                                                 TaxTypeCode = orderData.TaxTypeCode,
+                                                DocCurrencyCode = orderData.DocCurrencyCode,
                                                 InvoiceDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
                                                 Description = orderData.InternalDescription, //siparisNo
                                                 InternalDescription = orderData.InternalDescription, //siparisNo
@@ -916,7 +920,7 @@ namespace GoogleAPI.Persistance.Concretes
         {
             try
             {
-            List<SalesPersonModel>  list  = _context.SalesPersonModels.FromSqlRaw("Select * from cdSalesperson").AsEnumerable().ToList();
+            List<SalesPersonModel>  list  = _context.SalesPersonModels.FromSqlRaw("Select SalespersonCode,FirstLastName from cdSalesperson").AsEnumerable().ToList();
                 
                 return list;
 

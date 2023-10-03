@@ -35,22 +35,35 @@ namespace GoogleAPI.Persistance.Contexts
             modelBuilder.Entity<CustomerModel>().HasNoKey();
             modelBuilder.Entity<OrderData>().HasNoKey();
             modelBuilder.Entity<CreatePurchaseInvoice>().HasNoKey();
-            modelBuilder.Entity<SalesPersonModel>().HasNoKey();
-            modelBuilder.Entity<Domain.Models.NEBIM.Order.Invoice>().HasNoKey(); 
+            modelBuilder.Entity<SalesPersonModel>().HasNoKey();//CollectedProduct
+            modelBuilder.Entity<Domain.Models.NEBIM.Order.Invoice>().HasNoKey();
+            modelBuilder.Entity<CollectedProduct>().HasNoKey();//CollectedProduct
+            modelBuilder.Entity<CountListModel>().HasNoKey();//CollectedProduct CountedProduct
+            modelBuilder.Entity<CountedProduct>().HasNoKey();//CollectedProduct CountedProduct
+            modelBuilder.Entity<CreatePurchaseInvoice>().HasNoKey();//CollectedProduct CountedProduct
+
 
 
         }
-        //OrderBillingModel WarehouseFormModel EInvoiceModel
-        public DbSet<SalesPersonModel>? SalesPersonModels { get; set; } //WarehosueOperationDetail
+        //ZTMSRAFSAYIM3 CreatePurchaseInvoice
+        public DbSet<CreatePurchaseInvoice>? CreatePurchaseInvoices { get; set; }
 
-        public DbSet<EInvoiceModel>? ztEInvoiceModel { get; set; } //WarehosueOperationDetail
-        public DbSet<CreatePurchaseInvoice>? ztCreatePurchaseInvoice { get; set; } //WarehosueOperationDetail
+        public DbSet<ZTMSRAFSAYIM3>? ZTMSRAFSAYIM3 { get; set; }
 
-        public DbSet<OrderData>? ztOrderData { get; set; } //WarehosueOperationDetail
+        public DbSet<CountListModel>? CountListModels { get; set; }
+        public DbSet<CountedProduct>? CountedProducts { get; set; }
 
-        public DbSet<RecepieModel>? ztRecepieModel { get; set; } //WarehosueOperationDetail
-        public DbSet<Domain.Models.NEBIM.Order.Invoice>? ztInvoice { get; set; } //WarehosueOperationDetail
-        public DbSet<WarehosueOperationListModel>? ztWarehosueOperationListModel { get; set; } //WarehosueOperationDetail
+        public DbSet<SalesPersonModel>? SalesPersonModels { get; set; } 
+        public DbSet<CollectedProduct>? CollectedProducts { get; set; } 
+
+        public DbSet<EInvoiceModel>? ztEInvoiceModel { get; set; } 
+        public DbSet<CreatePurchaseInvoice>? ztCreatePurchaseInvoice { get; set; } 
+
+        public DbSet<OrderData>? ztOrderData { get; set; } 
+
+        public DbSet<RecepieModel>? ztRecepieModel { get; set; } 
+        public DbSet<Domain.Models.NEBIM.Order.Invoice>? ztInvoice { get; set; } 
+        public DbSet<WarehosueOperationListModel>? ztWarehosueOperationListModel { get; set; } 
         public DbSet<WarehouseOperationDetailModel>? ztWarehosueOperationDetail { get; set; } //
         public DbSet<OrderBillingModel>? ztOrderBillingModel { get; set; }
         public DbSet<ProductOfOrderModel>? ztProductOfOrderModel { get; set; }

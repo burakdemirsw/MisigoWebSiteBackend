@@ -5,6 +5,7 @@ using GoogleAPI.Domain.Models.NEBIM.Order;
 using GoogleAPI.Domain.Models.NEBIM.Product;
 using GoogleAPI.Persistance.Contexts;
 using GooleAPI.Application.Abstractions;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -89,6 +90,165 @@ namespace GoogleAPI.API.Controllers
             }
 
         }
+
+        [HttpGet("CompleteCount/{orderNumber}")]
+        public async Task<IActionResult> CompleteCount(string orderNumber)
+        {
+
+            try
+            {
+                if (Convert.ToBoolean(orderNumber.Split('|')[1])== true)
+                {
+                    string query = $"Get_MSRAFCompleteCountShelf'{orderNumber.Split('|')[0]}'";
+
+                    int orderSaleDetails = _context.Database.ExecuteSqlRaw(query);
+                    if (orderSaleDetails > 0)
+                    {
+                        return Ok(orderSaleDetails);
+                    }
+                    else
+                    {
+                        return BadRequest("İşlem Yapılmadı");
+                    }
+
+                }
+                else
+                {   
+                    string query = $"Get_MSRAFCompleteCount'{orderNumber.Split('|')[0]}'";
+                    int orderSaleDetails = _context.Database.ExecuteSqlRaw(query);
+                    if (orderSaleDetails > 0)
+                    {
+                        return Ok(orderSaleDetails);
+                    }
+                    else
+                    {
+                        return BadRequest("İşlem Yapılmadı");
+                    }
+                }
+              
+            }
+            catch (Exception ex)
+            {
+
+                return BadRequest(ErrorTextBase + ex.Message);
+
+            }
+
+        }
+
+
+        [HttpGet("GetCollectedOrderProducts/{orderNumber}")]
+        public async Task<IActionResult> GetCollectedOrderProducts(string orderNumber)
+        {
+
+            try
+            {
+                List<CollectedProduct> collectedProduct = _context.CollectedProducts.FromSqlRaw($"exec [GET_MSRafCollectedProducuts] '{orderNumber}'").AsEnumerable().ToList();
+                return Ok(collectedProduct);
+            }
+            catch (Exception ex)
+            {
+
+                return BadRequest(ErrorTextBase + ex.Message);
+
+            }
+
+        }
+
+        [HttpGet("GetProductOfCount/{orderNumber}")]
+        public async Task<IActionResult> GetProductOfCount(string orderNumber)
+        {
+
+            try
+            {
+                List<CountedProduct> collectedProduct = _context.CountedProducts.FromSqlRaw($"exec [Get_ProductOfCount] '{orderNumber}'").AsEnumerable().ToList();
+                return Ok(collectedProduct);
+            }
+            catch (Exception ex)
+            {
+
+                return BadRequest(ErrorTextBase + ex.Message);
+
+            }
+
+        }
+            
+        [HttpGet("GetProductOfInvoice/{invoiceId}")]
+        public async Task<IActionResult> GetProductOfInvoice(string invoiceId)
+        {
+
+            try
+            {
+                List<CreatePurchaseInvoice> collectedProduct = _context.CreatePurchaseInvoices.FromSqlRaw($"exec [Get_ProductOfInvoice] '{invoiceId}'").AsEnumerable().ToList();
+                return Ok(collectedProduct);
+            }
+            catch (Exception ex)
+            {
+
+                return BadRequest(ErrorTextBase + ex.Message);
+
+            }
+
+        }
+
+
+
+        [HttpPost("DeleteOrderProduct")]
+ 
+        public async Task<IActionResult> DeleteOrderProduct(DeleteOrderProductModel model)
+        {
+            try
+            {
+                string query = $"exec [Delete_MSRAFDeleteProduct] '{model.ItemCode}','{model.OrderNumber}'";
+                int collectedProduct = _context.Database.ExecuteSqlRaw(query);
+                if (collectedProduct > 0)
+                {
+                    return Ok(collectedProduct);
+                }
+                else
+                {
+                    return BadRequest("İşlem Yapılmadı");
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ErrorTextBase + ex.Message);
+            }
+        }
+
+        [HttpGet("GetInvoiceList")]
+        public async Task<IActionResult> GetInvoiceList( )
+        {
+            try
+            {
+                List<CountListModel> countListModels = _context.CountListModels.FromSqlRaw($"exec Get_InvoicesList").AsEnumerable().ToList();
+
+                return Ok(countListModels);
+            }
+            catch (Exception ex)
+            {
+
+                return BadRequest(ErrorTextBase + ex.Message);
+            }
+        }
+
+        [HttpGet("GetCountList")]
+        public async Task<IActionResult> GetCountList( )
+        {
+            try
+            {
+                List<CountListModel> countListModels = _context.CountListModels.FromSqlRaw($"exec Get_CountList ").AsEnumerable().ToList();
+
+                return Ok(countListModels);
+            }
+            catch (Exception ex)
+            {
+
+                return BadRequest(ErrorTextBase + ex.Message);
+            }
+        }
+
+
 
         [HttpGet("GetPurchaseOrders")]
         public async Task<IActionResult> GetPurchaseOrders( )
@@ -356,7 +516,7 @@ namespace GoogleAPI.API.Controllers
         {
             try
             {
-                string query = $"exec Post_MSRAFSTOKEKLE '{model.Barcode}','{model.ShelfNo}',0,'{model.OrderNumber}',{model.Quantity},'{model.Warehouse}','{model.CurrAccCode}'";
+                string query = $"exec Post_MSRAFSTOKEKLE '{model.Barcode}','{model.ShelfNo}',0,'{model.OrderNumber}',{model.Quantity},'{model.WarehouseCode}','{model.CurrAccCode}'";
                 ProductCountModel productCountModel = _context.ztProductCountModel.FromSqlRaw(query).AsEnumerable().First();
                 if (productCountModel != null)
                 {
@@ -375,23 +535,49 @@ namespace GoogleAPI.API.Controllers
         }
 
 
-        [HttpPost("CountProductPuschase")]
+        [HttpPost("CountProductPurchase")] //ZTMSRAFSAYIM3'e sayım yapar
 
-        public async Task<ActionResult<string>> CountProduct(CreatePurchaseInvoice model)
+        public async Task<ActionResult<string>> CountProduct(CreatePurchaseInvoice model) 
         {
             try
             {
-                string query = $"exec Get_MSRAFSAYIM4 '{model.Barcode}','{model.ShelfNo}',0,'{model.OrderNumber}',{model.Quantity},'{model.Warehouse}','{model.CurrAccCode}'";
+                string query = $"exec Get_MSRAFSAYIM4'{model.Barcode}','{model.ShelfNo}',0,'{model.OrderNumber}',{model.Quantity},'{model.WarehouseCode}','{model.CurrAccCode}'";
                 ProductCountModel productCountModel =  _context.ztProductCountModel.FromSqlRaw(query).AsEnumerable().First();
                 if (productCountModel != null)
                 {
-                    return Ok(productCountModel); 
+                    return Ok(productCountModel);
+                }
+                else
+                {  
+                    return BadRequest("Eşleşme Sağlanamadı");
+                }
+                
+           
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ErrorTextBase + ex.Message);
+            }
+
+        }
+
+        [HttpPost("CountProduct")]  
+
+        public async Task<ActionResult<string>> CountProduct(CountProductRequestModel model)
+        {
+            try
+            {
+                string query = $"exec Get_MSRAFSAYIM2'{model.Barcode}','{model.ShelfNo}',0,'{model.OrderNumber}',{model.Qty}";
+                ProductCountModel productCountModel = _context.ztProductCountModel.FromSqlRaw(query).AsEnumerable().First();
+                if (productCountModel != null)
+                {
+                    return Ok(productCountModel);
                 }
                 else
                 {
                     return BadRequest(ErrorTextBase);
                 }
-           
+
             }
             catch (Exception ex)
             {
@@ -399,13 +585,13 @@ namespace GoogleAPI.API.Controllers
             }
         }
 
-        [HttpPost("CountProduct")]
+        [HttpPost("CountProduct3")] //sayımda kullanılan
 
-        public async Task<ActionResult<string>> CountProduct(CountProductRequestModel model)
+        public async Task<ActionResult<string>> CountProduct3(CountProductRequestModel2 model)
         {
             try
             {
-                string query = $"exec Get_MSRAFSAYIM2 '{model.Barcode}','{model.ShelfNo}',0,'{model.OrderNumber}',{model.Qty}";
+                    string query = $"exec Get_MSRAFSAYIM3'{model.Barcode}','{model.ShelfNo}',0,'{model.OrderNo}',{model.Qty},'{model.WarehouseCode}','{model.CurrAccCode}','{model.BatchCode}'";
                 ProductCountModel productCountModel = _context.ztProductCountModel.FromSqlRaw(query).AsEnumerable().First();
                 if (productCountModel != null)
                 {
@@ -466,7 +652,7 @@ namespace GoogleAPI.API.Controllers
                 {
                     if ( model.InvoiceType == true) //ALIŞ IADE 
                     {
-                        bool result2 = await _orderService.AutoInvoice(model.OrderNo.ToString(), "usp_FoGetOrderrInvoiceToplu_BP2",model);
+                        bool result2 = await _orderService.AutoInvoice(model.OrderNo.ToString(), "usp_GetOrderForInvoiceToplu_BP2", model);
 
                         if (result2)
                         {
@@ -475,24 +661,24 @@ namespace GoogleAPI.API.Controllers
                             bool result3 = await _orderService.GenerateReceipt(productIds); // SİPARİŞ FATURASI YAZDIRILIYOR...
                             if (result3)
                             {
-                                return Ok("İşlem Başarılı");
+                                return Ok(true);
 
                             }
                             else
                             {
-                                return BadRequest("Yazdırma İşlemi Başarısız Oldu");
+                                return BadRequest("Printer Work Failed");
                             }
                         }
                         else
                         {
-                            throw new Exception("result2 değeri false döndü");
+                            throw new Exception("Result 2 Is NULL");
 
                         }
                     }
                     else
 
                     {
-                        bool result2 = await _orderService.AutoInvoice(model.OrderNo.ToString(), "usp_GetOrderForInvoiceToplu_BP2",model);
+                        bool result2 = await _orderService.AutoInvoice(model.OrderNo.ToString(), "usp_GetOrderForInvoiceToplu_BP",model);
 
                         if (result2)
                         {
@@ -501,17 +687,17 @@ namespace GoogleAPI.API.Controllers
                             bool result3 = await _orderService.GenerateReceipt(productIds); // SİPARİŞ FATURASI YAZDIRILIYOR...
                             if (result3)
                             {
-                                return Ok("İşlem Başarılı");
+                                    return Ok(true);
 
                             }
                             else
                             {
-                                return BadRequest("Yazdırma İşlemi Başarısız Oldu");
+                                return BadRequest("Printer Work Failed");
                             }
                         }
                         else
                         {
-                            throw new Exception("result2 değeri false döndü");
+                            throw new Exception("Result 2 Is NULL");
 
                         }
                     }
@@ -530,18 +716,18 @@ namespace GoogleAPI.API.Controllers
                             bool result3 = await _orderService.GenerateReceipt(productIds); // SİPARİŞ FATURASI YAZDIRILIYOR...
                             if (result3)
                             {
-                                return Ok("İşlem Başarılı");
+                                return Ok(true);
 
                             }
                             else
                             {
-                                return BadRequest("Yazdırma İşlemi Başarısız Oldu");
+                                return BadRequest("Printer Work Failed");
                             }
                         }
 
                         else
                         {
-                            throw new Exception("result2 değeri false döndü");
+                            throw new Exception("Result 2 Is NULL");
 
                         }
                     } 
@@ -559,17 +745,17 @@ namespace GoogleAPI.API.Controllers
                             bool result3 = await _orderService.GenerateReceipt(productIds); // SİPARİŞ FATURASI YAZDIRILIYOR...
                             if (result3)
                             {
-                                return Ok("İşlem Başarılı");
+                                return Ok(true);
 
                             }
                             else
                             {
-                                return BadRequest("Yazdırma İşlemi Başarısız Oldu");
+                                return BadRequest("Printer Work Failed");
                             }
                         }
                         else
                         {
-                            throw new Exception("result2 değeri false döndü");
+                            throw new Exception("Result 2 Is NULL");
 
                         }
                     }
@@ -584,17 +770,17 @@ namespace GoogleAPI.API.Controllers
                             bool result3 = await _orderService.GenerateReceipt(productIds); // SİPARİŞ FATURASI YAZDIRILIYOR...
                             if (result3)
                             {
-                                return Ok("İşlem Başarılı");
+                                return Ok(true);
 
                             }
                             else
                             {
-                                return BadRequest("Yazdırma İşlemi Başarısız Oldu");
+                                return BadRequest("Printer Work Failed");
                             }
                         }
                         else
                         {
-                            throw new Exception("result2 değeri false döndü");
+                            throw new Exception("Result 2 Is NULL");
 
                         }
                     }
@@ -612,17 +798,17 @@ namespace GoogleAPI.API.Controllers
                             bool result3 = await _orderService.GenerateReceipt(productIds); // SİPARİŞ FATURASI YAZDIRILIYOR...
                             if (result3)
                             {
-                                return Ok("İşlem Başarılı");
+                                return Ok(true);
 
                             }
                             else
                             {
-                                return BadRequest("Yazdırma İşlemi Başarısız Oldu");
+                                return BadRequest("Printer Work Failed");
                             }
                         }
                         else
                         {
-                            throw new Exception("result2 değeri false döndü");
+                            throw new Exception("Result 2 Is NULL");
 
                         }
                     }
@@ -636,17 +822,17 @@ namespace GoogleAPI.API.Controllers
                             bool result3 = await _orderService.GenerateReceipt(productIds); // SİPARİŞ FATURASI YAZDIRILIYOR...
                             if (result3)
                             {
-                                return Ok("İşlem Başarılı");
+                                return Ok(true);
 
                             }
                             else
                             {
-                                return BadRequest("Yazdırma İşlemi Başarısız Oldu");
+                                return BadRequest("Printer Work Failed");
                             }
                         }
                         else
                         {
-                            throw new Exception("result2 değeri false döndü");
+                            throw new Exception("Result 2 Is NULL");
 
 
                         }

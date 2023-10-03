@@ -14,6 +14,7 @@ namespace GoogleAPI.Domain.Models.NEBIM.Invoice
 
         public string? OrderNo { get; set; } //solo
         public string? EInvoicenumber { get; set; } //solo
+        public string? DocCurrencyCode { get; set; } //solo
 
         public int TaxTypeCode { get; set; } //solo
 
