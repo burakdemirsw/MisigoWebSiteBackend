@@ -45,8 +45,9 @@ namespace GoogleAPI.Persistance.Contexts
 
 
         }
-        //ZTMSRAFSAYIM3 CreatePurchaseInvoice
+        //ZTMSRAFSAYIM3 CreatePurchaseInvoice FastTransferModel
         public DbSet<CreatePurchaseInvoice>? CreatePurchaseInvoices { get; set; }
+        public DbSet<FastTransferModel>? FastTransferModels { get; set; }
 
         public DbSet<ZTMSRAFSAYIM3>? ZTMSRAFSAYIM3 { get; set; }
 

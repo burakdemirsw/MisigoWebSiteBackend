@@ -1,8 +1,10 @@
-﻿using GoogleAPI.Domain.Models.NEBIM;
+﻿using GoogleAPI.Domain.Models.Filter;
+using GoogleAPI.Domain.Models.NEBIM;
 using GoogleAPI.Domain.Models.NEBIM.Customer;
 using GoogleAPI.Domain.Models.NEBIM.Invoice;
 using GoogleAPI.Domain.Models.NEBIM.Order;
 using GoogleAPI.Domain.Models.NEBIM.Product;
+using GoogleAPI.Domain.Models.NEBIM.Warehouse;
 using GoogleAPI.Persistance.Contexts;
 using GooleAPI.Application.Abstractions;
 using Microsoft.AspNetCore.Cors;
@@ -50,6 +52,64 @@ namespace GoogleAPI.API.Controllers
                 return BadRequest(ErrorTextBase + ex.Message);
             }
         }
+
+        [HttpPost("GetOrdersByFilter")]
+        public async Task<IActionResult> GetOrdersByFilter(OrderFilterModel model)
+        {
+            try
+            {
+                // Initialize the base SQL query
+                string query = "SELECT TOP 100 OrderDate, OrderNumber, AllOrders.CurrAccCode, cdCurrAccDesc.CurrAccDescription, SalespersonCode, Qty1 = SUM(AllOrders.Qty1), Price = CAST(SUM(Doc_AmountVI) AS INT) FROM AllOrders LEFT OUTER JOIN cdCurrAccDesc ON cdCurrAccDesc.CurrAccTypeCode = AllOrders.CurrAccTypeCode AND cdCurrAccDesc.CurrAccCode = AllOrders.CurrAccCode AND cdCurrAccDesc.LangCode = 'TR' INNER JOIN stOrder ON stOrder.OrderLineID = AllOrders.OrderLineID WHERE ProcessCode IN ('WS', 'R')";
+
+                // Initialize filter clauses
+                List<string> filterClauses = new List<string>();
+
+                // Add filters based on model properties
+                if (!string.IsNullOrEmpty(model.OrderNo))
+                {
+                    filterClauses.Add($"OrderNumber like '{model.OrderNo}%'");
+                }
+                if (!string.IsNullOrEmpty(model.CurrAccCode))
+                {
+                    filterClauses.Add($"AllOrders.CurrAccCode like '{model.CurrAccCode}%'");
+                }
+                if (!string.IsNullOrEmpty(model.CustomerName))
+                {
+                    filterClauses.Add($"cdCurrAccDesc.CurrAccDescription LIKE '%{model.CustomerName}%'");
+                }
+                if (!string.IsNullOrEmpty(model.SellerCode))
+                {
+                    filterClauses.Add($"SalespersonCode = '{model.SellerCode}'");
+                }
+                if (model.StartDate != null)
+                {
+                    filterClauses.Add($"AllOrders.OrderDate >= '{model.StartDate:yyyy-MM-dd}'");
+                }
+                if (model.EndDate != null)
+                {
+                    filterClauses.Add($"AllOrders.OrderDate <= '{model.EndDate:yyyy-MM-dd}'");
+                }
+
+                // Combine filter clauses
+                if (filterClauses.Count > 0)
+                {
+                    string filterConditions = string.Join(" AND ", filterClauses);
+                    query += " AND " + filterConditions;
+                }
+
+                // Complete the query
+                query += " GROUP BY OrderDate, OrderNumber, AllOrders.CurrAccCode, cdCurrAccDesc.CurrAccDescription, SalespersonCode ORDER BY OrderDate";
+
+                List<SaleOrderModel> saleOrderModel = _context.SaleOrderModels.FromSqlRaw(query).AsEnumerable().ToList();
+
+                return Ok(saleOrderModel);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ErrorTextBase + ex.Message);
+            }
+        }
+
 
 
         #region alış faturası işlemleri
@@ -221,6 +281,7 @@ namespace GoogleAPI.API.Controllers
         {
             try
             {
+
                 List<CountListModel> countListModels = _context.CountListModels.FromSqlRaw($"exec Get_InvoicesList").AsEnumerable().ToList();
 
                 return Ok(countListModels);
@@ -231,6 +292,71 @@ namespace GoogleAPI.API.Controllers
                 return BadRequest(ErrorTextBase + ex.Message);
             }
         }
+
+        [HttpPost("GetInvoiceListByFilter")]
+        public async Task<IActionResult> GetInvoiceListByFilter(InvoiceFilterModel model )
+        {
+            try
+            {
+                // StartDate'i 'yyyy-MM-dd' formatına çevir
+                string startDateString = model.StartDate.HasValue ? model.StartDate.Value.ToString("yyyy-MM-dd") : null;
+
+                // EndDate'i 'yyyy-MM-dd' formatına çevir
+                string endDateString = model.EndDate.HasValue ? model.EndDate.Value.ToString("yyyy-MM-dd") : null;
+
+
+
+                string query = "SELECT MAX(ItemDate) AS LastUpdateDate, SUM(Quantity) AS TotalProduct, OrderNumber AS OrderNo FROM ZTMSRAFSAYIM3 Where len(OrderNumber)>1 query1  GROUP BY OrderNumber query2 ORDER BY LastUpdateDate DESC;";
+                string addedQuery = "";
+                string addedQuery2 = "";
+                if (model.OrderNo!=null)
+                {
+                    addedQuery += $"and orderNumber like '{model.OrderNo}%'";
+                }
+                if (model.InvoiceType != null)
+                {
+                    if (model.InvoiceType.StartsWith("BPI"))
+                    {
+                        addedQuery += $"OrderNumber like 'BPI%'";
+
+                    }else
+                    {
+                        addedQuery += $"OrderNumber like 'WSI%'";
+
+                    }
+                }
+                if (model.StartDate != null)
+                {
+                    
+                    addedQuery2 += $"having MAX(ItemDate) >= {startDateString}  ";
+                }
+                if (model.EndDate != null)
+                {
+                    if (addedQuery2.Contains("having"))
+                    {
+                        addedQuery2 += $"and having MAX(ItemDate) <= {endDateString}  ";
+                    }
+                    else
+                    {
+                        addedQuery2 += $" having MAX(ItemDate) <= {endDateString}  ";
+
+                    }
+
+                }
+                query= query.Replace("query1", addedQuery);
+                query = query.Replace("query2", addedQuery2);
+
+                List<CountListModel> countListModels = _context.CountListModels.FromSqlRaw(query).AsEnumerable().ToList();
+
+                return Ok(countListModels);
+            }
+            catch (Exception ex)
+            {
+
+                return BadRequest(ErrorTextBase + ex.Message);
+            }
+        }
+
 
         [HttpGet("GetCountList")]
         public async Task<IActionResult> GetCountList( )
@@ -247,6 +373,58 @@ namespace GoogleAPI.API.Controllers
                 return BadRequest(ErrorTextBase + ex.Message);
             }
         }
+
+        [HttpPost("GetCountListByFilter")]
+        public async Task<IActionResult> GetCountListByFilter(CountListFilterModel model)
+        {
+            try
+            {
+                // StartDate'i 'yyyy-MM-dd' formatına çevir
+                string startDateString = model.StartDate.HasValue ? model.StartDate.Value.ToString("yyyy-MM-dd") : null;
+
+                // EndDate'i 'yyyy-MM-dd' formatına çevir
+                string endDateString = model.EndDate.HasValue ? model.EndDate.Value.ToString("yyyy-MM-dd") : null;
+
+                string query = $"SELECT TOP 100 MAX(ItemDate) AS LastUpdateDate, COUNT(Barcode) AS TotalProduct, OrderNumber AS OrderNo  FROM ZTMSRAFSAYIM3 Where OrderNumber != ''  ";
+                if(model.OrderNo!=null)
+                {
+                    query += $"and OrderNumber like '{model.OrderNo}%'";
+                }
+                if (model.TotalProduct != null)
+                {
+                    query += $"and  COUNT(Barcode)>='{model.TotalProduct}'";
+
+                }
+                query += " group by OrderNumber ";
+                if (model.StartDate != null)
+                {
+                    query += $"Having MAX(ItemDate)>='{startDateString}'";
+                }
+                if (model.EndDate != null)
+                {
+                    if (query.Contains("Having"))
+                    {
+                        query += $"and Having  MAX(ItemDate)<='{endDateString}'";
+
+                    }
+                    else
+                    {
+                        query += $" Having  MAX(ItemDate)<='{endDateString}'";
+
+                    }
+
+                }
+                query += " Order by MAX(ItemDate) desc ";
+                List<CountListModel> countListModels = _context.CountListModels.FromSqlRaw(query).AsEnumerable().ToList();
+
+                return Ok(countListModels);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ErrorTextBase + ex.Message);
+            }
+        }
+
 
 
 
@@ -265,48 +443,66 @@ namespace GoogleAPI.API.Controllers
                 return BadRequest(ErrorTextBase + ex.Message);
             }
         }
+
+        [HttpPost("GetPurchaseOrdersByFilter")]
+        public async Task<IActionResult> GetPurchaseOrdersByFilter(OrderFilterModel model)
+        {
+            try
+            {
+                // Initialize the base SQL query
+                string query = "SELECT OrderDate, OrderNumber, AllOrders.CurrAccCode, cdCurrAccDesc.CurrAccDescription, SalespersonCode, Qty1 = SUM(AllOrders.Qty1), Price = CAST(SUM(Doc_AmountVI) AS INT) FROM AllOrders LEFT OUTER JOIN cdCurrAccDesc ON cdCurrAccDesc.CurrAccTypeCode = AllOrders.CurrAccTypeCode AND cdCurrAccDesc.CurrAccCode = AllOrders.CurrAccCode AND cdCurrAccDesc.LangCode = 'TR' INNER JOIN stOrder ON stOrder.OrderLineID = AllOrders.OrderLineID WHERE ProcessCode IN ('BP')";
+
+                // Initialize filter clauses
+                List<string> filterClauses = new List<string>();
+
+                // Add filters based on model properties
+                if (!string.IsNullOrEmpty(model.OrderNo))
+                {
+                    filterClauses.Add($"OrderNumber like '{model.OrderNo}%'");
+                }
+                if (!string.IsNullOrEmpty(model.CurrAccCode))
+                {
+                    filterClauses.Add($"AllOrders.CurrAccCode like '{model.CurrAccCode}%'");
+                }
+                if (!string.IsNullOrEmpty(model.CustomerName))
+                {
+                    filterClauses.Add($"cdCurrAccDesc.CurrAccDescription LIKE '%{model.CustomerName}%'");
+                }
+                if (!string.IsNullOrEmpty(model.SellerCode))
+                {
+                    filterClauses.Add($"SalespersonCode = '{model.SellerCode}'");
+                }
+                if (model.StartDate != null)
+                {
+                    filterClauses.Add($"AllOrders.OrderDate >= '{model.StartDate:yyyy-MM-dd}'");
+                }
+                if (model.EndDate != null)
+                {
+                    filterClauses.Add($"AllOrders.OrderDate <= '{model.EndDate:yyyy-MM-dd}'");
+                }
+
+                // Combine filter clauses
+                if (filterClauses.Count > 0)
+                {
+                    string filterConditions = string.Join(" AND ", filterClauses);
+                    query += " AND " + filterConditions;
+                }
+
+                // Complete the query
+                query += " GROUP BY OrderDate, OrderNumber, AllOrders.CurrAccCode, cdCurrAccDesc.CurrAccDescription, SalespersonCode ORDER BY OrderDate";
+
+                List<SaleOrderModel> saleOrderModel = _context.SaleOrderModels.FromSqlRaw(query).AsEnumerable().ToList();
+
+                return Ok(saleOrderModel);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ErrorTextBase + ex.Message);
+            }
+        }
+
+
         #endregion alış faturası işlemleri 
-        //[HttpGet("OrderBillings/{orderNo}")]
-        //public async Task<IActionResult> GetOrderBillingModels(string orderNo)
-        //{
-        //    try
-        //    {
-
-        //        List<OrderBillingModel> saleOrderModel = _context.ztOrderBillingModel.FromSqlRaw($" ").AsEnumerable().ToList();
-        //        List<OrderBillingListModel> OrderBillingListModels = new List<OrderBillingListModel>();
-        //        foreach (var item in saleOrderModel)
-        //        {
-        //            OrderBillingListModel orderBillingListModel = new OrderBillingListModel();
-        //            orderBillingListModel.ItemBillingModels = JsonConvert.DeserializeObject<List<ItemBillingModel>>(item.Json);
-        //            orderBillingListModel.TotalValue = item.TotalValue;
-        //            OrderBillingListModels.Add(orderBillingListModel);
-
-        //        }
-        //        return Ok(OrderBillingListModels);
-        //    }
-        //    catch (Exception ex)
-        //    {
-
-        //        return BadRequest(ErrorTextBase + ex.Message);
-        //    }
-        //}
-
-
-        //[HttpGet("GenerateQRCode")]
-        //public async Task<IActionResult> GenerateQRCode( )
-        //{
-        //    try
-        //    {
-        //        Guid guid = Guid.NewGuid();
-        //        Image qrCodeImage = _orderService.QrCode(guid);
-        //        qrCodeImage.Save(@$"C:\\code\{guid.ToString()}.png");
-        //        return Ok(qrCodeImage);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return BadRequest("QR kodu oluşturulamadı: " + ex.Message);
-        //    }
-        //}
 
         [HttpGet("{id}")]   
         public async Task<IActionResult> GetSaleOrdersById(string id)
@@ -591,7 +787,7 @@ namespace GoogleAPI.API.Controllers
         {
             try
             {
-                    string query = $"exec Get_MSRAFSAYIM3'{model.Barcode}','{model.ShelfNo}',0,'{model.OrderNo}',{model.Qty},'{model.WarehouseCode}','{model.CurrAccCode}','{model.BatchCode}'";
+                    string query = $"exec Get_MSRAFSAYIM3'{model.Barcode}','{model.ShelfNo}',0,'{model.OrderNo}',{model.Quantity},'{model.WarehouseCode}','{model.CurrAccCode}','{model.BatchCode}'";
                 ProductCountModel productCountModel = _context.ztProductCountModel.FromSqlRaw(query).AsEnumerable().First();
                 if (productCountModel != null)
                 {
@@ -678,7 +874,7 @@ namespace GoogleAPI.API.Controllers
                     else
 
                     {
-                        bool result2 = await _orderService.AutoInvoice(model.OrderNo.ToString(), "usp_GetOrderForInvoiceToplu_BP",model);
+                        bool result2 = await _orderService.AutoInvoice(model.OrderNo.ToString(), "usp_GetOrderForInvoiceToplu_BP2",model);
 
                         if (result2)
                         {
@@ -934,6 +1130,80 @@ namespace GoogleAPI.API.Controllers
             }
         }
 
+        [HttpPost("AddFastTransfer")]
+        public async Task<IActionResult> AddFastTransfer(FastTransferModel model)
+        {
+            try
+            {
+                _context.FastTransferModels.Add(model);
+                await _context.SaveChangesAsync();
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ErrorTextBase + ex.Message);
+            }
+        }
+
+        [HttpGet("GetAllFastTransferModels")]
+        public IActionResult GetAllFastTransferModels( )
+        {
+            try
+            {
+                var models = _context.FastTransferModels.ToList();
+                return Ok(models);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ErrorTextBase + ex.Message);
+            }
+        }
+
+        [HttpGet("GetFastTransferModel/{operationId}")]
+        public IActionResult GetFastTransferModelsByOperationId(string operationId)
+        {
+            try
+            {
+                var models = _context.FastTransferModels
+                    .Where(model => model.OperationId == operationId)
+                    .ToList();
+
+                return Ok(models);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ErrorTextBase + ex.Message);
+            }
+        }
+
+        [HttpPost("DeleteProductFromFastTransfer")]
+        public async Task<IActionResult> DeleteProductFromFastTransfer(DeleteOrderProductModel deleteModel)
+        {
+            try
+            {
+                // Veritabanında silme işlemi yapmadan önce gerekli kontrolü yapabilirsiniz.
+                var productToDelete = _context.FastTransferModels
+                    .FirstOrDefault(op => op.OperationId == deleteModel.OrderNumber && op.Barcode == deleteModel.ItemCode);
+
+                if (productToDelete == null)
+                {
+                    return NotFound();
+                }
+
+                _context.FastTransferModels.Remove(productToDelete);
+                await _context.SaveChangesAsync();
+
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ErrorTextBase + ex.Message);
+            }
+        }
+
+
+
+
     }
-    }
+}
 

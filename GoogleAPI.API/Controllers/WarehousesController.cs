@@ -1,4 +1,5 @@
 ﻿using GoogleAPI.Domain.Models;
+using GoogleAPI.Domain.Models.Filter;
 using GoogleAPI.Domain.Models.NEBIM;
 using GoogleAPI.Domain.Models.NEBIM.Invoice;
 using GoogleAPI.Domain.Models.NEBIM.Order;
@@ -220,7 +221,7 @@ namespace GoogleAPI.API.Controllers
         {
             try
             {
-                List<WarehosueOperationListModel> saleOrderModel = _context.ztWarehosueOperationListModel.FromSqlRaw("select * from ztTransferOnayla where IsCompleted = 0 Order by InnerNumber desc").AsEnumerable().ToList();
+                List<WarehosueOperationListModel> saleOrderModel = _context.ztWarehosueOperationListModel.FromSqlRaw("select TOP 100* from ztTransferOnayla where IsCompleted = 0 Order by InnerNumber desc").AsEnumerable().ToList();
 
                 return Ok(saleOrderModel);
             }
@@ -230,6 +231,54 @@ namespace GoogleAPI.API.Controllers
                 return BadRequest(ErrorTextBase + ex.Message);
             }
         }
+
+        [HttpPost("GetWarehosueOperationListByFilter")]
+        public IActionResult GetWarehosueOperationListByFilter(WarehouseOperationListFilterModel model)
+        {
+            try
+            {
+                // Initialize the base query
+                string query = "SELECT * FROM ztTransferOnayla WHERE IsCompleted = 0";
+
+                // Initialize filter clauses
+                List<string> filterClauses = new List<string>();
+
+                // Add filters based on model properties
+                if (!string.IsNullOrEmpty(model.InnerNumber))
+                {
+                    filterClauses.Add($"InnerNumber = '{model.InnerNumber}'");
+                }
+                if (model.StartDate != null)
+                {
+                    filterClauses.Add($"OperationDate >= '{model.StartDate:yyyy-MM-dd}'");
+                }
+                if (model.EndDate != null)
+                {
+                    filterClauses.Add($"OperationDate <= '{model.EndDate:yyyy-MM-dd}'");
+                }
+
+                // Combine filter clauses
+                if (filterClauses.Count > 0)
+                {
+                    string filterConditions = string.Join(" AND ", filterClauses);
+                    query += " AND " + filterConditions;
+                }
+
+                // Complete the query
+                query += " ORDER BY InnerNumber DESC;";
+
+                // Execute the query and retrieve results
+                List<WarehosueOperationListModel> saleOrderModel = _context.ztWarehosueOperationListModel.FromSqlRaw(query).AsEnumerable().ToList();
+
+                return Ok(saleOrderModel);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ErrorTextBase + ex.Message);
+            }
+        }
+
+
         [HttpGet("GetWarehouseOperationDetail/{innerNumber}")]
         public IActionResult GetWarehosueOperationDetail(string innerNumber)
         {

@@ -297,6 +297,7 @@ namespace GoogleAPI.Persistance.Concretes
                                     orderData.Lines
                                 );
                             }
+                            //bu kısımda line değeri 50 den büyükse fatura yollancak orderheader ıd alıncak sorna tekrardan geri kalan ürünler faturalaşcak.
 
                             List<Payment> payments = null;
                             if (orderData.Payments != null)
