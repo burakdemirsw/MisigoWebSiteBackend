@@ -1,9 +1,7 @@
 ﻿using GoogleAPI.Persistance;
-using GoogleAPI.Persistance.Concreates;
-using GoogleAPI.Persistance.Concretes;
+
 using GoogleAPI.Persistance.Contexts;
 using GoogleAPI.Persistance.Repositories;
-using GooleAPI.Application.Abstractions;
 using GooleAPI.Application.IRepositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -38,15 +36,27 @@ namespace GooleAPI.Infrastructure
             services.AddDbContext<GooleAPIDbContext>(
                 options => options.UseSqlServer(Configuration.ConnectionString)
             );
-            services.AddScoped<IOrderService, OrderService>();
-            ////////services.AddScoped<IProductReadRepository, ProductReadRepository>();
-            ////////services.AddScoped<IProductWriteRepository, ProductWriteRepository>();
 
-            ////////services.AddScoped<IVM_Get_ProductModelReadRepository, VM_Get_ProductReadRepository>();
-            ////////services.AddScoped<
-            ////////    IVM_Get_ProductModelWriteRepository,
-            ////////    VM_Get_ProductWriteRepository
-            ////////>();
+            services.AddScoped<IProductReadRepository, ProductReadRepository>();
+            services.AddScoped<IProductWriteRepository, ProductWriteRepository>();
+
+            services.AddScoped<IMainCategoryReadRepository, MainCategoryReadRepository>();
+            services.AddScoped<IMainCategoryWriteRepository, MainCategoryWriteRepository>();
+
+            services.AddScoped<IColorReadRepository, ColorReadRepository>();
+            services.AddScoped<IColorWriteRepository, ColorWriteRepository>();
+
+            services.AddScoped<IDimensionReadRepository, DimensionReadRepository>();
+            services.AddScoped<IDimensionWriteRepository, DimensionWriteRepository>();
+
+            services.AddScoped<IBrandReadRepository, BrandReadRepository>();
+            services.AddScoped<IBrandWriteRepository, BrandWriteRepository>();
+
+            //services.AddScoped<IVM_Get_ProductModelReadRepository, VM_Get_ProductReadRepository>();
+            //services.AddScoped<
+            //    IVM_Get_ProductModelWriteRepository,
+            //    VM_Get_ProductWriteRepository
+            //>();
         }
         //extention fonksiyonları
     }

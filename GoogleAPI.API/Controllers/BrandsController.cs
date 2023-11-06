@@ -1,36 +1,40 @@
 
 using GoogleAPI.Domain.Entities;
+using GoogleAPI.Domain.Models;
 using GoogleAPI.Persistance.Contexts;
 using GooleAPI.Application.IRepositories;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace GoogleAPI.API.Controllers
 {
-    [Route("api/Categories")]
+    [Route("api/Brands")]
     [ApiController]
-    public class CategoriesController : ControllerBase
+    public class BrandsController : ControllerBase
     {
         private readonly GooleAPIDbContext _context;
-        private readonly IMainCategoryWriteRepository _cw;
-        private readonly IMainCategoryReadRepository _cr;
+        private readonly IBrandWriteRepository _cw;
+        private readonly IBrandReadRepository _cr;
 
         private readonly string ErrorTextBase = "İstek Sırasında Hata Oluştu: ";
-        public CategoriesController(
-           GooleAPIDbContext context, IMainCategoryWriteRepository cw, IMainCategoryReadRepository cr
+        public BrandsController(
+           GooleAPIDbContext context, IBrandWriteRepository cw, IBrandReadRepository cr
         )
         {
             _cw = cw;
             _cr = cr;
             _context = context;
         }
-         // Tüm kategorileri getiren endpoint
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<MainCategory>>> GetCategories()
+
+
+        [HttpPost("GetBrands")]
+        public async Task<ActionResult<IEnumerable<Brand_VM>>> GetCategories( string? brandId)
         {
             try
             {
-                List<MainCategory> categories = _cr.GetAll().AsEnumerable().ToList();
-                return categories;
+                var query = $"exec GetBrandById '{brandId}'";
+                List<Brand_VM> brands = _context.Brand_VM.FromSqlRaw(query).AsEnumerable().ToList();
+                return brands;
             }
             catch (Exception ex)
             {
@@ -38,15 +42,16 @@ namespace GoogleAPI.API.Controllers
             }
         }
 
-        // Kategori ekleyen endpoint
+
+
         [HttpPost]
-        public async Task<ActionResult<MainCategory>> AddCategory(string categoryName)
+        public async Task<ActionResult<Brand>> AddBrand(string BrandName)
         {
             try
             {
-                MainCategory category = new();
-                category.Description = categoryName;
-                await _cw.AddAsync(category);
+                Brand Brand = new();
+                Brand.Description = BrandName;
+                await _cw.AddAsync(Brand);
 
                 return Ok();
             }
@@ -56,19 +61,18 @@ namespace GoogleAPI.API.Controllers
             }
         }
 
-        // Kategori ID'ye göre silen endpoint
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteCategory(int id)
+        public async Task<IActionResult> DeleteBrand(int id)
         {
             try
             {
-                var category = await _cr.GetByIdAsync(id);
-                if (category == null)
+                var Brand = await _cr.GetByIdAsync(id);
+                if (Brand == null)
                 {
                     return NotFound();
                 }
 
-                bool response = _cw.Remove(category);
+                bool response = _cw.Remove(Brand);
                 if (response)
                 {
                     return Ok();
@@ -82,8 +86,6 @@ namespace GoogleAPI.API.Controllers
             {
                 return BadRequest(ErrorTextBase + ex.Message);
             }
-
-
         }
 
 

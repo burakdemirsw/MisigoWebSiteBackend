@@ -13,13 +13,13 @@ namespace GoogleAPI.Persistance
         {
             get
             {
-                ConfigurationManager configurationManager = new();
-                configurationManager.SetBasePath(
-                    Path.Combine(Directory.GetCurrentDirectory(), "../../GoogleAPI/GoogleAPI.API")
-                );
-                configurationManager.AddJsonFile("appsettings.json");
+                //ConfigurationManager configurationManager = new();
+                //configurationManager.SetBasePath(
+                //    Path.Combine(Directory.GetCurrentDirectory(), "../../GoogleAPI/GoogleAPI.API")
+                //);
+                //configurationManager.AddJsonFile("appsettings.json");
 
-                return "Data Source=192.168.2.36;Initial Catalog=BDD2017;User ID=sa;Password=8969;TrustServerCertificate=True;";
+                return "Server=(localdb)\\MSSQLLocalDB;Database=WhatsappAPI;trusted_connection=true";
             }
         }
     }

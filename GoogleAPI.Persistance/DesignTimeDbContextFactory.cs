@@ -10,7 +10,7 @@ namespace GoogleAPI.Persistance
         public GooleAPIDbContext CreateDbContext(string[] args)
         {
             DbContextOptionsBuilder<GooleAPIDbContext> dbContextBuilder = new();
-            dbContextBuilder.UseSqlServer("Data Source=192.168.2.36;Initial Catalog=BDD2017;User ID=sa;Password=8969;TrustServerCertificate=True;");
+            dbContextBuilder.UseSqlServer("Server=(localdb)\\MSSQLLocalDB;Database=WhatsappAPI;trusted_connection=true");
             return new GooleAPIDbContext(dbContextBuilder.Options);
         }
     }

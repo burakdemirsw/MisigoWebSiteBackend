@@ -31,8 +31,8 @@
 
   <ItemGroup>
     <Folder Include="Concreates\" />
+    <Folder Include="Contexts\" />
     <Folder Include="Repositories\ProductViewModel\" />
-    <Folder Include="Repositories\Product\" />
   </ItemGroup>
 
 </Project>

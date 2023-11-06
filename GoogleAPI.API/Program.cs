@@ -19,7 +19,9 @@ builder.Services.AddCors(options =>
                 "http://212.156.46.206:4200",
                 "http://localhost:4200",
                 "http://192.168.2.36:4200",
-                "*") // Yýldýz (*) kullanarak herhangi bir kaynaða izin verebilirsiniz.
+                "http://212.156.46.206:4202",
+                "http://localhost:4202",
+                "http://192.168.2.36:4202") // Yýldýz (*) kullanarak herhangi bir kaynaða izin verebilirsiniz.
             .AllowAnyHeader() // Herhangi bir baþlýk (header) izni veriyoruz.
             .AllowAnyMethod(); // Herhangi bir HTTP metodunun kullanýmýna izin veriyoruz.
     });

@@ -40,7 +40,10 @@ namespace GoogleAPI.Persistance.Repositories
         public bool Remove(T model)
         {
             EntityEntry<T> entityEntry = Table.Remove(model);
-            return entityEntry.State == EntityState.Deleted;
+            Boolean state = entityEntry.State == EntityState.Deleted;
+            SaveAsync(model);
+
+            return state;
         }
 
         public bool RemoveRange(List<T> datas)
