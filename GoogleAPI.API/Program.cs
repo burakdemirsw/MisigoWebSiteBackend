@@ -13,15 +13,14 @@ builder.Services.AddCors(options =>
         // Ýzin verilen kökenleri (origins) burada belirtiyoruz.
         policy
             .WithOrigins(
-                "http://localhost:7178",
-                "http://212.156.46.206:7178",
-                "http://192.168.2.36:7178",
-                "http://212.156.46.206:4200",
-                "http://localhost:4200",
-                "http://192.168.2.36:4200",
-                "*") // Yýldýz (*) kullanarak herhangi bir kaynaða izin verebilirsiniz.
+                "http://localhost:7179",
+                "http://212.156.46.206:7179",
+                "http://192.168.2.36:7179",
+                "http://212.156.46.206:4201",
+                "http://localhost:4201",
+                "http://192.168.2.36:4201") // Yýldýz (*) kullanarak herhangi bir kaynaða izin verebilirsiniz.
             .AllowAnyHeader() // Herhangi bir baþlýk (header) izni veriyoruz.
-            .AllowAnyMethod(); // Herhangi bir HTTP metodunun kullanýmýna izin veriyoruz.
+            .AllowAnyMethod(); 
     });
 });
 

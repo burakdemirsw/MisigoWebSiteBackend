@@ -19,4 +19,12 @@ namespace GoogleAPI.Domain.Models.NEBIM.Shelf
         public string? Party { get; set; }
         public int? Inventory { get; set; }
     }
+
+    public class AvailableShelf
+    {
+
+
+        public string? Description { get; set; }
+      
+    }
 }

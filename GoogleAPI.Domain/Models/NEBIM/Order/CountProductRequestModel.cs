@@ -27,7 +27,9 @@ namespace GoogleAPI.Domain.Models.NEBIM.Order
         public string? OrderNo { get; set; }
         public int? Quantity { get; set; }
         public string? CurrAccCode { get; set; }
-
+        public bool? IsReturn { get; set; }
+        public string? SalesPersonCode { get; set; }
+        public string? TaxTypeCode { get; set; }
 
     }
 }

@@ -5,19 +5,24 @@ VisualStudioVersion = 17.4.33205.214
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{1BA40551-15F6-40D6-B69D-C2ED7FCA3250}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GoogleAPI.Domain", "GoogleAPI.Domain\GoogleAPI.Domain.csproj", "{AE8E5E6D-60B2-4A4B-B8B0-CC607CDE720B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GoogleAPI.Domain", "GoogleAPI.Domain\GoogleAPI.Domain.csproj", "{AE8E5E6D-60B2-4A4B-B8B0-CC607CDE720B}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Presentation", "Presentation", "{8309EA55-A803-4BD7-A982-DCE1B47B6B15}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GooleAPI.Application", "GooleAPI.Application\GooleAPI.Application.csproj", "{3D3566E9-F6F1-4EDD-B4A7-A664B14C18D5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GooleAPI.Application", "GooleAPI.Application\GooleAPI.Application.csproj", "{3D3566E9-F6F1-4EDD-B4A7-A664B14C18D5}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Infrastructure", "Infrastructure", "{1E62FC26-AC9D-4E27-8E2D-F2B432B2AF64}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GooleAPI.Infrastructure", "GooleAPI.Infrastructure\GooleAPI.Infrastructure.csproj", "{6844E4A7-AC3E-49CD-BBFB-206CC3E5EA76}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GooleAPI.Infrastructure", "GooleAPI.Infrastructure\GooleAPI.Infrastructure.csproj", "{6844E4A7-AC3E-49CD-BBFB-206CC3E5EA76}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GoogleAPI.Persistance", "GoogleAPI.Persistance\GoogleAPI.Persistance.csproj", "{E2E21A4B-13DC-482E-8276-A2BD0903CB4F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GoogleAPI.Persistance", "GoogleAPI.Persistance\GoogleAPI.Persistance.csproj", "{E2E21A4B-13DC-482E-8276-A2BD0903CB4F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GoogleAPI.API", "GoogleAPI.API\GoogleAPI.API.csproj", "{31276298-3F45-40E7-9500-842FCD1EDAED}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GoogleAPI.API", "GoogleAPI.API\GoogleAPI.API.csproj", "{31276298-3F45-40E7-9500-842FCD1EDAED}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{5533F6EC-2873-46B3-800A-4340DFF44067}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

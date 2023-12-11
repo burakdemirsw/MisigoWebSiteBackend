@@ -19,5 +19,8 @@ namespace GoogleAPI.Domain.Models.NEBIM.Product
         public string? WareHouseCode { get; set; }
         public string? CurrAccCode { get; set; }
         public string? Itemcode { get; set; }
+        public bool? IsReturn { get; set; }
+        public string? SalesPersonCode { get; set; }
+        public string? TaxTypeCode { get; set; }
     }
 }

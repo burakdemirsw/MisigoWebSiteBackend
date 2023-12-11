@@ -26,13 +26,14 @@ namespace GoogleAPI.API.Controllers
             {
                 if (id != "{id}")
                 {
-                    List<ShelfModel> saleOrderModel = _context.ztShelves.FromSqlRaw($"select * from ztShelves where Id = '{id}'").AsEnumerable().ToList();
+                    List<ShelfModel>? saleOrderModel =await  _context.ztShelves.FromSqlRaw($"select * from ztShelves where Id = '{id}'").ToListAsync();
 
                     return Ok(saleOrderModel);
                 }
                 else
                 {
-                    List<ShelfModel> saleOrderModel = _context.ztShelves.FromSqlRaw($"select * from ztShelves ").AsEnumerable().ToList();
+                    List<ShelfModel>? saleOrderModel = await _context.ztShelves.FromSqlRaw($"select * from ztShelves ").ToListAsync();
+                    
 
                     return Ok(saleOrderModel);
                 }
@@ -51,13 +52,13 @@ namespace GoogleAPI.API.Controllers
             {
                 if (qrCode != "{qrCode}")
                 {
-                    List<ShelfModel> saleOrderModel = _context.ztShelves.FromSqlRaw($"select * from ztShelves where QrString = '{qrCode}'").AsEnumerable().ToList();
+                    List<ShelfModel> saleOrderModel =await  _context.ztShelves.FromSqlRaw($"select * from ztShelves where QrString = '{qrCode}'").ToListAsync();
 
                     return Ok(saleOrderModel);
                 }
                 else
                 {
-                    List<ShelfModel> saleOrderModel = _context.ztShelves.FromSqlRaw($"select * from ztShelves ").AsEnumerable().ToList();
+                    List<ShelfModel> saleOrderModel = await _context.ztShelves.FromSqlRaw($"select * from ztShelves ").ToListAsync();
 
                     return Ok(saleOrderModel);
                 }

@@ -19,6 +19,8 @@ namespace GoogleAPI.Domain.Models.NEBIM.Invoice
         public string? Currency { get; set; }
         public string? PhotoUrl { get; set; }
         public string? BatchCode { get; set; }
+        public string? ItemCode { get; set; }
+        public int Qty { get; set; }
 
 
     }

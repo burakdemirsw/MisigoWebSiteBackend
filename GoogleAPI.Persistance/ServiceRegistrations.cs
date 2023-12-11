@@ -5,6 +5,7 @@ using GoogleAPI.Persistance.Contexts;
 using GoogleAPI.Persistance.Repositories;
 using GooleAPI.Application.Abstractions;
 using GooleAPI.Application.IRepositories;
+using GooleAPI.Application.IRepositories.Log;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -38,15 +39,13 @@ namespace GooleAPI.Infrastructure
             services.AddDbContext<GooleAPIDbContext>(
                 options => options.UseSqlServer(Configuration.ConnectionString)
             );
-            services.AddScoped<IOrderService, OrderService>();
-            ////////services.AddScoped<IProductReadRepository, ProductReadRepository>();
-            ////////services.AddScoped<IProductWriteRepository, ProductWriteRepository>();
 
-            ////////services.AddScoped<IVM_Get_ProductModelReadRepository, VM_Get_ProductReadRepository>();
-            ////////services.AddScoped<
-            ////////    IVM_Get_ProductModelWriteRepository,
-            ////////    VM_Get_ProductWriteRepository
-            ////////>();
+            services.AddScoped<ILogReadRepository, LogReadRepository>();
+            services.AddScoped<ILogWriteRepository, LogWriteRepository>();
+            services.AddScoped<IOrderService, OrderService>();
+            services.AddScoped<ILogService, LogService>();
+
+          
         }
         //extention fonksiyonları
     }

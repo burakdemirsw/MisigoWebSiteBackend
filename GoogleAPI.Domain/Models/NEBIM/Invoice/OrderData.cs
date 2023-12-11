@@ -46,12 +46,12 @@ namespace GoogleAPI.Domain.Models.NEBIM.Invoice
     public class EInvoiceModel
     {
         public int Id { get; set; }
-        public string OrderNumber { get; set; }
-        public string OrderNo { get; set; } //solo
+        public string? OrderNumber { get; set; }
+        public string? OrderNo { get; set; } //solo
 
-        public string EInvoiceNumber { get; set; }
+        public string? EInvoiceNumber { get; set; }
 
-        public string UnofficialInvoiceString { get; set; }
+        public string? UnofficialInvoiceString { get; set; }
 
         public DateTime InvoiceDatetime { get; set; }
     }
@@ -59,9 +59,9 @@ namespace GoogleAPI.Domain.Models.NEBIM.Invoice
     public class OrderErrorModel
     {
         public int ModelType { get; set; }
-        public string ExceptionMessage { get; set; }
-        public string StackTrace { get; set; }
-        public string ErrorSource { get; set; }
+        public string? ExceptionMessage { get; set; }
+        public string? StackTrace { get; set; }
+        public string? ErrorSource { get; set; }
         public int StatusCode { get; set; }
     }
 

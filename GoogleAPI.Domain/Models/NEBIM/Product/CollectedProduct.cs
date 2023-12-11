@@ -22,6 +22,10 @@ namespace GoogleAPI.Domain.Models.NEBIM.Product
         public string? Barcode { get; set; }
         public int? Quantity { get; set; }
         public string? BatchCode { get; set; }
+        public string? ItemCode { get; set; }
+    
+
+
     }
     public class CountedProduct2
     {
@@ -36,6 +40,14 @@ namespace GoogleAPI.Domain.Models.NEBIM.Product
 
     }
 
+    public class TransferRequestListModel
+    {
+        public string? ItemCode { get; set; }
+        public string? ShelfNo { get; set; }
+        public  int? Quantity { get; set; }
+        public string? TargetShelf { get; set; }
+        public int? TransferQuantity { get; set; }
+    }
 
 
 }

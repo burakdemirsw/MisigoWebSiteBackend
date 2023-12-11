@@ -18,8 +18,11 @@ namespace GoogleAPI.Domain.Models.NEBIM.Order
         public string? RowNumber { get; set; }
         public string? ShelfNo { get; set; }
         public Guid PackageNo { get; set; }
+        public int CountedQty { get; set; }
+        public int CurrentQty { get; set; }
+        public string? Description { get; set; }
 
     }
 
-  
+
 }

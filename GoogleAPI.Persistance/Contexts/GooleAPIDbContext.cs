@@ -1,4 +1,7 @@
-﻿using GoogleAPI.Domain.Models.NEBIM.Category;
+﻿using GoogleAPI.Domain.Entities.Common;
+using GoogleAPI.Domain.Models.Filter;
+using GoogleAPI.Domain.Models.NEBIM;
+using GoogleAPI.Domain.Models.NEBIM.Category;
 using GoogleAPI.Domain.Models.NEBIM.Customer;
 using GoogleAPI.Domain.Models.NEBIM.Invoice;
 using GoogleAPI.Domain.Models.NEBIM.Order;
@@ -13,7 +16,10 @@ namespace GoogleAPI.Persistance.Contexts
     public class GooleAPIDbContext : DbContext
     {
 
-        public GooleAPIDbContext(DbContextOptions options) : base(options) { }
+        public GooleAPIDbContext(DbContextOptions<GooleAPIDbContext> options) : base(options)
+        {
+            Database.SetCommandTimeout(180); // SQL sorguları için zaman aşımı süresini 3 dakika olarak ayarla
+        }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
 
@@ -30,22 +36,56 @@ namespace GoogleAPI.Persistance.Contexts
             modelBuilder.Entity<InvoiceNumberModel>().HasNoKey(); 
             modelBuilder.Entity<RemainingProductsModel>().HasNoKey(); 
             modelBuilder.Entity<CountProductRequestModel>().HasNoKey();
-            modelBuilder.Entity<ProductCountModel>().HasNoKey(); 
+            modelBuilder.Entity<ProductCountModel>().HasNoKey();
+            modelBuilder.Entity<ProductCountModel2>().HasNoKey();
             modelBuilder.Entity<RecepieModel>().HasNoKey();
             modelBuilder.Entity<CustomerModel>().HasNoKey();
             modelBuilder.Entity<OrderData>().HasNoKey();
             modelBuilder.Entity<CreatePurchaseInvoice>().HasNoKey();
-            modelBuilder.Entity<SalesPersonModel>().HasNoKey();//CollectedProduct
+            modelBuilder.Entity<SalesPersonModel>().HasNoKey();
             modelBuilder.Entity<Domain.Models.NEBIM.Order.Invoice>().HasNoKey();
-            modelBuilder.Entity<CollectedProduct>().HasNoKey();//CollectedProduct
-            modelBuilder.Entity<CountListModel>().HasNoKey();//CollectedProduct CountedProduct
-            modelBuilder.Entity<CountedProduct>().HasNoKey();//CollectedProduct CountedProduct
-            modelBuilder.Entity<CreatePurchaseInvoice>().HasNoKey();//CollectedProduct CountedProduct
-
+            modelBuilder.Entity<CollectedProduct>().HasNoKey();
+            modelBuilder.Entity<CountListModel>().HasNoKey();
+            modelBuilder.Entity<CountedProduct>().HasNoKey();
+            modelBuilder.Entity<CreatePurchaseInvoice>().HasNoKey();
+            modelBuilder.Entity<TransferModel>().HasNoKey();
+            modelBuilder.Entity<TransferData>().HasNoKey();
+            modelBuilder.Entity<CountConfirmData>().HasNoKey();
+            modelBuilder.Entity<WarehouseTransferListFilterModel>().HasNoKey();
+            modelBuilder.Entity<WarehosueTransferListModel>().HasNoKey();
+            modelBuilder.Entity<InvoiceErrorInfoModel>().HasNoKey();
+            modelBuilder.Entity<ProductList_VM>().HasNoKey();
+            modelBuilder.Entity<QrControlModel>().HasNoKey();
+            modelBuilder.Entity<InventoryItemModel>().HasNoKey();
+            modelBuilder.Entity<TransferRequestListModel>().HasNoKey();
+             modelBuilder.Entity<InventoryResponseModel>().HasNoKey();
+            modelBuilder.Entity<AvailableShelf>().HasNoKey();
 
 
         }
-        //ZTMSRAFSAYIM3 CreatePurchaseInvoice FastTransferModel
+        //
+        //Description
+        public DbSet<AvailableShelf>? AvailableShelfs { get; set; }
+
+        public DbSet<TransferRequestListModel>? TransferRequestListModels { get; set; }
+        public DbSet<QrCode>? ztQrCodes { get; set; }
+        public DbSet<Log>? ztLogs { get; set; }
+        public DbSet<ProductList_VM>? ProductListModel { get; set; }
+        public DbSet<InvoiceErrorInfoModel>? InvoiceErrorInfoModel { get; set; }
+        public DbSet<InventoryItemModel>? InventoryItemModels { get; set; }
+        public DbSet<WarehosueTransferListModel>? WarehosueTransferListModel { get; set; }
+        public DbSet<CountConfirmData>? CountConfirmData { get; set; }
+        public DbSet<WarehouseTransferListFilterModel>? WarehouseTransferListFilterModel { get; set; }
+
+        public DbSet<ZTMSRAFInvoiceDetailBP>? ZTMSRAFInvoiceDetailBP { get; set; }
+        public DbSet<TransferData>? TransferData { get; set; }
+
+        public DbSet<TransferModel>? TransferModel { get; set; }
+
+        public DbSet<ProductCountModel2>? ztProductCountModel2 { get; set; }
+
+        public DbSet<WarehouseFormModel>? WarehouseFormModel { get; set; }
+
         public DbSet<CreatePurchaseInvoice>? CreatePurchaseInvoices { get; set; }
         public DbSet<FastTransferModel>? FastTransferModels { get; set; }
 
@@ -55,7 +95,8 @@ namespace GoogleAPI.Persistance.Contexts
         public DbSet<CountedProduct>? CountedProducts { get; set; }
 
         public DbSet<SalesPersonModel>? SalesPersonModels { get; set; } 
-        public DbSet<CollectedProduct>? CollectedProducts { get; set; } 
+        public DbSet<CollectedProduct>? CollectedProducts { get; set; }
+        public DbSet<QrControlModel>? QrControlModel { get; set; }
 
         public DbSet<EInvoiceModel>? ztEInvoiceModel { get; set; } 
         public DbSet<CreatePurchaseInvoice>? ztCreatePurchaseInvoice { get; set; } 
@@ -82,7 +123,8 @@ namespace GoogleAPI.Persistance.Contexts
         public DbSet<InvoiceNumberModel>? ztInvoiceNumberModel { get; set; }
         public DbSet<RemainingProductsModel>? ztRemainingProductsModel { get; set; }
         public DbSet<CountProductRequestModel>? ztCountProductRequestModel { get; set; }
-        public DbSet<CustomerModel>? ztCustomerModel { get; set; }
+        public DbSet<CustomerModel>? ztCustomerModel { get; set; } //InventoryResponseModel
+        public DbSet<InventoryResponseModel>? InventoryResponseModels { get; set; }
 
         public DbSet<ProductCountModel>? ztProductCountModel { get; set; } 
 

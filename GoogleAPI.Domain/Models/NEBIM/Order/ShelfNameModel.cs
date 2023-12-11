@@ -11,6 +11,12 @@ namespace GoogleAPI.Domain.Models.NEBIM.Order
         public string? Status { get; set; }
         public string? Description { get; set; }
     }
+    public class ProductCountModel2
+    {
+        public string? Status { get; set; }
+        public string? Description { get; set; }
+        public string? ItemCode { get; set; }
 
+    }
 
 }

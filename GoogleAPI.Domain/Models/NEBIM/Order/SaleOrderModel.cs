@@ -15,5 +15,11 @@ namespace GoogleAPI.Domain.Models.NEBIM.Order
         public string? SalespersonCode { get; set; }
         public double? Qty1 { get; set; }
         public int? Price { get; set; }
+        public int? CollectedQty { get; set; }
+        public int? Status { get; set; }
+        public int? RemainingQty { get; set; }
+        public string? Description { get; set; }
+
+
     }
 }
