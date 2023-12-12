@@ -45,7 +45,12 @@ namespace GooleAPI.Infrastructure
             services.AddScoped<IOrderService, OrderService>();
             services.AddScoped<ILogService, LogService>();
 
-          
+            services.AddScoped<IGeneralService, GeneralService>();
+            services.AddScoped<IInvoiceService, InvoiceService>();
+            services.AddScoped<ITransferService, TransferService>();
+            services.AddScoped<ICountService, CountService>();
+
+
         }
         //extention fonksiyonları
     }

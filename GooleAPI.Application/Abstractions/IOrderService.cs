@@ -1,6 +1,9 @@
-﻿using GoogleAPI.Domain.Models.NEBIM;
+﻿using GoogleAPI.Domain.Models.Filter;
+using GoogleAPI.Domain.Models.NEBIM;
+using GoogleAPI.Domain.Models.NEBIM.Customer;
 using GoogleAPI.Domain.Models.NEBIM.Invoice;
 using GoogleAPI.Domain.Models.NEBIM.Order;
+using GoogleAPI.Domain.Models.NEBIM.Product;
 using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
@@ -13,25 +16,24 @@ namespace GooleAPI.Application.Abstractions
 {
     public interface IOrderService
     {
-        public Image QrCode(string id);
+        Task<List<SaleOrderModel>> GetOrders( );
+        Task<List<SaleOrderModel>> GetOrdersByFilter(OrderFilterModel model);
+        Task<List<CustomerModel>> GetCustomerList(int customerType);
+        Task<List<SaleOrderModel>> GetPurchaseOrders( );
+        Task<List<SaleOrderModel>> GetPurchaseOrdersByFilter(OrderFilterModel model);
+        Task<List<SaleOrderModel>> GetSaleOrdersById(string id);
+        Task<List<ProductOfOrderModel>> GetOrderSaleDetailByPackageId(string PackageId);
+        Task<List<ProductOfOrderModel>> GetPurchaseOrderSaleDetail(string orderNumber);
+        Task<List<ProductOfOrderModel>> GetProductsOfOrders(int numberOfList);
+        Task<List<ProductOfOrderModel>> GetOrderSaleDetail(string orderNumber);
+        Task<Bitmap> GetOrderDetailsFromQrCode(string data);
+        Task<List<CollectedProduct>> GetCollectedOrderProducts(string orderNumber);
+        Task<bool> SetInventoryByOrderNumber(string orderNumber);
+        Task<BarcodeAddModel> AddSaleBarcode(BarcodeAddModel model);
+        Task<int> SetStatusOfPackages(List<ProductOfOrderModel> models);
+        Task<List<ReadyToShipmentPackageModel>> GetReadyToShipmentPackages( );
+        Task<int> PutReadyToShipmentPackagesStatusById(string id);
 
-        public Task<Bitmap> GetOrderDetailsFromQrCode(string data);
-
-        public Task<Bitmap> HtmlToImage(string html, string path, int width, int height, string type);
-
-        public Task PrintWithoutDialog(Bitmap image);
-        public void ClearFolder( );
-
-        public Task PrintInvoice(string HtmlPath, int width, int height, string type);
-
-        public  Task<Boolean> GenerateReceipt(List<string> orderNumbers);
-        public Task<Boolean> AutoInvoice(string orderNumber, string procedureName, OrderBillingRequestModel model, HttpContext context);
-        public Task<string> ConnectIntegrator( );
-        public Task<List<SalesPersonModel>> GetAllSalesPersonModels( );
-        public  Task<string> GetCurrentMethodName(string name);
-
-
-        public  Task<string> GenerateBarcode_A(List<BarcodeModel_A> barcodes);
 
     }
 }

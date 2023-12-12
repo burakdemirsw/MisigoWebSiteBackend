@@ -17,6 +17,7 @@ using System.Drawing;
 using System.Net;
 using System.Reflection;
 using System.Text;
+using ZXing;
 
 namespace GoogleAPI.API.Controllers
 {
@@ -26,19 +27,22 @@ namespace GoogleAPI.API.Controllers
     {
         private readonly GooleAPIDbContext _context;
         private readonly string ErrorTextBase = "İstek Sırasında Hata Oluştu: ";
+        private readonly IGeneralService _gs;
         private readonly string IpAdresi = "http://192.168.2.36:7676";
         private IOrderService _orderService;
         private ILogService _ls;
+
         // private IOrderService _orderService;
         public WarehousesController(
           GooleAPIDbContext context,
 
-          IOrderService orderService, ILogService ls
+          IOrderService orderService, ILogService ls,IGeneralService gs
         )
         {
             _orderService = orderService;
             _ls = ls;
             _context = context;
+            _gs = gs;
         }
 
         //Ürün Controller'ına taşınması lazım
@@ -55,38 +59,15 @@ namespace GoogleAPI.API.Controllers
             catch (Exception ex)
             {
 
-                string methodName = await _orderService.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
-                string requestUrl = HttpContext.Request.Path + HttpContext.Request.QueryString;
-                await _ls.LogWarehouseWarn($"{methodName} Sırasında Hata Alındı", $"{ex.Message}", requestUrl);
+                string methodName = await _gs.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
+                
+                await _ls.LogWarehouseWarn($"{methodName} Sırasında Hata Alındı", $"{ex.Message}");
                 return BadRequest(ErrorTextBase + ex.Message);
             }
         }
         //Nebim Servislerine taşınması lazım
 
-        private async Task<string> ConnectIntegrator( )
-        {
-            try
-            {
-                HttpClient client = new HttpClient();
-                HttpResponseMessage response = await client.GetAsync(
-                  IpAdresi + "/IntegratorService/Connect"
-                );
 
-                response.EnsureSuccessStatusCode();
-
-                string responseBody = await response.Content.ReadAsStringAsync();
-                HttpConnectionRequestModel? session =
-                  JsonConvert.DeserializeObject<HttpConnectionRequestModel>(responseBody);
-
-                string sessionId = session.SessionId;
-                return sessionId;
-            }
-            catch (HttpRequestException ex)
-            {
-                //Console.WriteLine($"HTTP isteği başarısız: {ex.Message}");
-                return null;
-            }
-        }
 
         [HttpGet("GetOfficeModel")] //ofiseleri çeker
         public async Task<IActionResult> GetOfficeModel( )
@@ -100,9 +81,9 @@ namespace GoogleAPI.API.Controllers
             }
             catch (Exception ex)
             {
-                string methodName = await _orderService.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
-                string requestUrl = HttpContext.Request.Path + HttpContext.Request.QueryString;
-                await _ls.LogWarehouseWarn($"{methodName} Sırasında Hata Alındı", $"{ex.Message}", requestUrl);
+                string methodName = await _gs.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
+                
+                await _ls.LogWarehouseWarn($"{methodName} Sırasında Hata Alındı", $"{ex.Message}");
                 return BadRequest(ErrorTextBase + ex.Message);
             }
         }
@@ -110,14 +91,14 @@ namespace GoogleAPI.API.Controllers
         [HttpGet("TransferProducts/{orderNo}")]
         public async Task<IActionResult> TransferProducts(string orderNo)
         {
-            string methodName = await _orderService.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
-            string requestUrl = HttpContext.Request.Path + HttpContext.Request.QueryString;
+            string methodName = await _gs.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
+            
             try
             {
 
-                TransferData? transferData = new TransferData();
+            
 
-                transferData = _context.TransferData?.FromSqlRaw($"exec usp_GetOrderForInvoiceToplu_WT '{orderNo}'").AsEnumerable().First();
+                TransferData? transferData = await _context.TransferData.FromSqlRaw($"exec usp_GetOrderForInvoiceToplu_WT '{orderNo}'").FirstOrDefaultAsync();
                 if (transferData != null)
                 {
                     List<TransferItem>? transferItems = JsonConvert.DeserializeObject<List<TransferItem>>(transferData.Lines);
@@ -146,50 +127,29 @@ namespace GoogleAPI.API.Controllers
 
                     var json = JsonConvert.SerializeObject(transferDataModel);
 
-                    using (var httpClient = new HttpClient())
+                    var response = _gs.PostNebimAsync(json, "TRANSFER");
+
+
+                    if (response != null)
                     {
-                        var content = new StringContent(json, Encoding.UTF8, "application/json");
-                        string sessionID = await ConnectIntegrator();
-                        if (sessionID != null)
-                        {
-                            var response = await httpClient.PostAsync($"http://192.168.2.36:7676/(S({sessionID}))/IntegratorService/post?", content);
-
-                            var result = await response.Content.ReadAsStringAsync();
-                            JObject jsonResponse = JObject.Parse(result);
-
-                            ErrorResponseModel? erm = JsonConvert.DeserializeObject<ErrorResponseModel>(result);
-
-                            if (erm != null)
-                            {
-                                if (erm.StatusCode == 400)
-                                {
-                                    await _ls.LogWarehouseError($"{content}", "Transfer Başarısız", erm.ExceptionMessage,requestUrl);
-
-                                    throw new Exception(erm.ExceptionMessage);
-                                }
-                            }
-                           
-                            await _ls.LogWarehouseSuccess( $"{methodName} Başarılı", HttpContext.Request.Path); return Ok(true);
-
-                        }
-                        else
-                        {
-                            await _ls.LogWarehouseWarn($"{methodName} Sırasında Hata Alındı", $"", requestUrl);
-                            return BadRequest("SessionId Alınamadı");
-                        }
+                        await _ls.LogWarehouseSuccess($"{methodName} Başarılı", HttpContext.Request.Path);
+                        return Ok(true);
 
                     }
-
+                    else
+                    {
+                        return BadRequest(response);
+                    }
                 }
                 else
                 {
-                    await _ls.LogWarehouseWarn($"{methodName} Sırasında Hata Alındı", $"", requestUrl);
+                    await _ls.LogWarehouseWarn($"{methodName} Sırasında Hata Alındı", $"");
                     return BadRequest();
                 }
             }
             catch (Exception ex)
             {
-                await _ls.LogWarehouseWarn($"{methodName} Sırasında Hata Alındı", $"{ex.Message}", requestUrl);
+                await _ls.LogWarehouseWarn($"{methodName} Sırasında Hata Alındı", $"{ex.Message}");
                 return BadRequest(ErrorTextBase + ex.Message);
             }
         }
@@ -197,7 +157,7 @@ namespace GoogleAPI.API.Controllers
         [HttpGet("GetWarehouseModel/{officeCode}")] //verilen ofis koduna göre depoları çeker
         public async Task<IActionResult> WarehouseModel(string officeCode)
         {
-            string requestUrl = HttpContext.Request.Path + HttpContext.Request.QueryString;
+            
 
             try
             {
@@ -208,8 +168,8 @@ namespace GoogleAPI.API.Controllers
             catch (Exception ex)
             {
 
-                string methodName = await _orderService.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
-                await _ls.LogWarehouseWarn($"{methodName} Sırasında Hata Alındı", $"{ex.Message}",requestUrl);
+                string methodName = await _gs.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
+                await _ls.LogWarehouseWarn($"{methodName} Sırasında Hata Alındı", $"{ex.Message}");
                 return BadRequest(ErrorTextBase + ex.Message);
             }
         }
@@ -226,10 +186,10 @@ namespace GoogleAPI.API.Controllers
             catch (Exception ex)
             {
 
-                string methodName = await _orderService.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
-                string requestUrl = HttpContext.Request.Path + HttpContext.Request.QueryString;
+                string methodName = await _gs.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
+                
 
-                await _ls.LogWarehouseWarn($"{methodName} Sırasında Hata Alındı", $"{ex.Message}", requestUrl);
+                await _ls.LogWarehouseWarn($"{methodName} Sırasında Hata Alındı", $"{ex.Message}");
                 return BadRequest(ErrorTextBase + ex.Message);
             }
         }
@@ -237,7 +197,7 @@ namespace GoogleAPI.API.Controllers
         [HttpGet("DeleteCountById/{id}")]
         public async Task<ActionResult> DeleteCountById(string id)
         {
-            string methodName = await _orderService.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
+            string methodName = await _gs.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
             try
             {
                 var affectedRow = _context.Database.ExecuteSqlRaw($"delete from ZTMSRAFSAYIM3 where OrderNumber = '{id}' ");
@@ -247,17 +207,17 @@ namespace GoogleAPI.API.Controllers
                 }
                 else
                 {
-                    string requestUrl = HttpContext.Request.Path + HttpContext.Request.QueryString;
+                    
 
-                    await _ls.LogWarehouseWarn($"{methodName} Sırasında Hata Alındı", $"", requestUrl);
+                    await _ls.LogWarehouseWarn($"{methodName} Sırasında Hata Alındı", $"");
                     return BadRequest();
                 }
             }
             catch (Exception ex)
             {
-                string requestUrl = HttpContext.Request.Path + HttpContext.Request.QueryString;
+                
 
-                await _ls.LogWarehouseWarn($"{methodName} Sırasında Hata Alındı", $"{ex.Message}", requestUrl);
+                await _ls.LogWarehouseWarn($"{methodName} Sırasında Hata Alındı", $"{ex.Message}");
                 return BadRequest(ErrorTextBase + ex.Message);
             }
         }
@@ -265,8 +225,8 @@ namespace GoogleAPI.API.Controllers
         [HttpGet("DeleteWarehouseTransferById/{id}")]
         public async Task<IActionResult> DeleteWarehouseTransferByOrderNumber(string id)
         {
-            string methodName = await _orderService.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
-            string requestUrl = HttpContext.Request.Path + HttpContext.Request.QueryString;
+            string methodName = await _gs.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
+            
             try
             {
                 var affectedRow = _context.Database.ExecuteSqlRaw($"delete from ZTMSRAFSAYIM6 where OrderNumber = '{id}' ");
@@ -278,14 +238,14 @@ namespace GoogleAPI.API.Controllers
                 {
                   
 
-                    await _ls.LogWarehouseWarn($"{methodName} Sırasında Hata Alındı", $"", requestUrl);
+                    await _ls.LogWarehouseWarn($"{methodName} Sırasında Hata Alındı", $"");
                     return BadRequest();
                 }
             }
             catch (Exception ex)
             {
            
-                await _ls.LogWarehouseWarn($"{methodName} Sırasında Hata Alındı", $"{ex.Message}",requestUrl);
+                await _ls.LogWarehouseWarn($"{methodName} Sırasında Hata Alındı", $"{ex.Message}");
                 return BadRequest(ErrorTextBase + ex.Message);
             }
         }
@@ -293,8 +253,8 @@ namespace GoogleAPI.API.Controllers
         [HttpPost("GetWarehosueTransferList")]
         public async Task<IActionResult> GetWarehosueTransferList(WarehouseTransferListFilterModel model)
         {
-            string methodName = await _orderService.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
-            string requestUrl = HttpContext.Request.Path + HttpContext.Request.QueryString;
+            string methodName = await _gs.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
+            
             try
             {
                 // Initialize the base query
@@ -344,7 +304,7 @@ namespace GoogleAPI.API.Controllers
             catch (Exception ex)
             {
 
-                await _ls.LogWarehouseWarn($"{methodName} Sırasında Hata Alındı", $"{ex.Message}", requestUrl);
+                await _ls.LogWarehouseWarn($"{methodName} Sırasında Hata Alındı", $"{ex.Message}");
                 return BadRequest(ErrorTextBase + ex.Message);
             }
         }
@@ -352,8 +312,8 @@ namespace GoogleAPI.API.Controllers
         [HttpPost("GetWarehosueOperationListByFilter")]
         public async Task<IActionResult> GetWarehosueOperationListByFilter(WarehouseOperationListFilterModel model)
         {
-            string methodName = await _orderService.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
-            string requestUrl = HttpContext.Request.Path + HttpContext.Request.QueryString;
+            string methodName = await _gs.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
+            
             try
             {
                 // Initialize the base query
@@ -394,7 +354,7 @@ namespace GoogleAPI.API.Controllers
             catch (Exception ex)
             {
   
-                await _ls.LogWarehouseWarn($"{methodName} Sırasında Hata Alındı", $"{ex.Message}", requestUrl);
+                await _ls.LogWarehouseWarn($"{methodName} Sırasında Hata Alındı", $"{ex.Message}");
                 return BadRequest(ErrorTextBase + ex.Message);
             }
         }
@@ -411,9 +371,9 @@ namespace GoogleAPI.API.Controllers
             catch (Exception ex)
             {
 
-                string methodName = await _orderService.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
-                string requestUrl = HttpContext.Request.Path + HttpContext.Request.QueryString;
-                await _ls.LogWarehouseWarn($"{methodName} Sırasında Hata Alındı", $"{ex.Message}", requestUrl);
+                string methodName = await _gs.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
+                
+                await _ls.LogWarehouseWarn($"{methodName} Sırasında Hata Alındı", $"{ex.Message}");
                 return BadRequest(ErrorTextBase + ex.Message);
             }
         }
@@ -442,9 +402,9 @@ namespace GoogleAPI.API.Controllers
             }
             catch (Exception ex)
             {
-                string methodName = await _orderService.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
-                string requestUrl = HttpContext.Request.Path + HttpContext.Request.QueryString;
-                await _ls.LogWarehouseWarn($"{methodName} Sırasında Hata Alındı", $"{ex.Message}", requestUrl);
+                string methodName = await _gs.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
+                
+                await _ls.LogWarehouseWarn($"{methodName} Sırasında Hata Alındı", $"{ex.Message}");
                 return BadRequest(ErrorTextBase + ex.Message);
             }
         }
@@ -452,8 +412,8 @@ namespace GoogleAPI.API.Controllers
         [HttpPost("ConfirmOperation")] // yapılan depo işlemlerin durumunu günceller 
         public async Task<ActionResult> ConfirmOperation(List<string> InnerNumberList)
         {
-            string methodName = await _orderService.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
-            string requestUrl = HttpContext.Request.Path + HttpContext.Request.QueryString;
+            string methodName = await _gs.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
+            
             try
             {
                 foreach (var item in InnerNumberList)
@@ -468,7 +428,7 @@ namespace GoogleAPI.API.Controllers
             catch (Exception ex)
             {
               
-                await _ls.LogWarehouseWarn($"{methodName} Sırasında Hata Alındı", $"{ex.Message}",requestUrl);
+                await _ls.LogWarehouseWarn($"{methodName} Sırasında Hata Alındı", $"{ex.Message}");
                 return BadRequest(ErrorTextBase + ex.Message);
             }
         }
@@ -516,9 +476,9 @@ namespace GoogleAPI.API.Controllers
             catch (Exception ex)
             {
 
-                string methodName = await _orderService.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
-                string requestUrl = HttpContext.Request.Path + HttpContext.Request.QueryString;
-                await _ls.LogWarehouseWarn($"{methodName} Sırasında Hata Alındı", $"{ex.Message}", requestUrl);
+                string methodName = await _gs.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
+                
+                await _ls.LogWarehouseWarn($"{methodName} Sırasında Hata Alındı", $"{ex.Message}");
                 return BadRequest(ErrorTextBase + ex.Message);
             }
         }

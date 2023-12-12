@@ -12,16 +12,16 @@ namespace GooleAPI.Application.Abstractions
     public interface ILogService
     {
         Task Log(Log log);
-        Task LogOrderError(string request, string exceptioneader, string? exceptionText, string? RequestPath);
-        Task LogOrderWarn(string exceptionHeader, string? exceptionText,string? RequestPath);
+        Task LogOrderError(string request, string exceptioneader, string? exceptionText);
+        Task LogOrderWarn(string exceptionHeader, string? exceptionText);
         Task LogOrderSuccess(string exceptionHeader, string? exceptionText);
 
-        Task LogWarehouseError(string request, string exceptioneader, string? exceptionText, string? RequestPath);
-        Task LogWarehouseWarn(string exceptioneader, string? exceptionText, string? RequestPath);
+        Task LogWarehouseError(string request, string exceptioneader, string? exceptionText);
+        Task LogWarehouseWarn(string exceptioneader, string? exceptionText);
         Task LogWarehouseSuccess(string exceptioneader, string? exceptionText);
 
-        Task LogInvoiceError(string request,string exceptioneader, string? exceptionText, string? RequestPath);
-        Task LogInvoiceWarn(string exceptioneader, string? exceptionText, string? RequestPath);
+        Task LogInvoiceError(string request,string exceptioneader, string? exceptionText);
+        Task LogInvoiceWarn(string exceptioneader, string? exceptionText);
         Task LogInvoiceSuccess(string exceptioneader, string? exceptionText);
         Task<List<Log_VM>> GetLogs(LogFilterModel model);
     }

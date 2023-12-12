@@ -94,10 +94,8 @@ namespace GoogleAPI.Domain.Models.NEBIM.Invoice
     {
         public string? ItemCode { get; set; }
         public string? UsedBarcode { get; set; }
-
         public string? SalesPersonCode { get; set; }
         public string? BatchCode { get; set; }
-
         public List<ITAttribute>? ITAttributes { get; set; } 
         public decimal LDisRate1 { get; set; }
         public int VatRate { get; set; }

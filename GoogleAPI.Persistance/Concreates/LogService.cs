@@ -4,11 +4,6 @@ using GoogleAPI.Domain.Models.ViewModels;
 using GooleAPI.Application.Abstractions;
 using GooleAPI.Application.IRepositories.Log;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace GoogleAPI.Persistance.Concreates
 {
@@ -26,12 +21,12 @@ namespace GoogleAPI.Persistance.Concreates
         public async Task Log(Log log)
         {
             await _lw.AddAsync(log);
-          
+
         }
 
-        public async  Task LogOrderError(string request, string exceptioneader, string? exceptionText, string? RequestPath)
+        public async Task LogOrderError(string request, string exceptioneader, string? exceptionText)
         {
-            Log log =  new Log();   
+            Log log = new Log();
             log.CreatedDate = DateTime.Now;
             log.MessageHeader = "ORDER";
             log.Level = "ERROR";
@@ -39,13 +34,13 @@ namespace GoogleAPI.Persistance.Concreates
             log.LogEvent = exceptionText;
             log.Request = request;
             log.UserName = "ADMIN";
-            log.RequestPath = RequestPath;
+      
 
             await _lw.AddAsync(log);
-          
+
 
         }
-        public async Task LogOrderWarn(string exceptioneader, string? exceptionText, string? RequestPath)
+        public async Task LogOrderWarn(string exceptioneader, string? exceptionText)
         {
             Log log = new Log();
             log.CreatedDate = DateTime.Now;
@@ -54,9 +49,9 @@ namespace GoogleAPI.Persistance.Concreates
             log.ExceptionText = exceptioneader;
             log.LogEvent = exceptionText;
             log.UserName = "ADMIN";
-            log.RequestPath = RequestPath;
+       
             await _lw.AddAsync(log);
-          
+
 
         }
 
@@ -71,10 +66,10 @@ namespace GoogleAPI.Persistance.Concreates
             log.UserName = "ADMIN";
 
             await _lw.AddAsync(log);
-          
+
         }
 
-        public async Task LogInvoiceError(string request, string exceptioneader, string? exceptionText, string? RequestPath)
+        public async Task LogInvoiceError(string request, string exceptioneader, string? exceptionText)
         {
             Log log = new Log();
             log.CreatedDate = DateTime.Now;
@@ -84,12 +79,12 @@ namespace GoogleAPI.Persistance.Concreates
             log.LogEvent = exceptionText;
             log.UserName = "ADMIN";
             log.Request = request;
-            log.RequestPath = RequestPath;
+
             await _lw.AddAsync(log);
-          
+
 
         }
-        public async Task LogInvoiceWarn(string exceptioneader, string? exceptionText, string? RequestPath)
+        public async Task LogInvoiceWarn(string exceptioneader, string? exceptionText)
         {
             Log log = new Log();
             log.CreatedDate = DateTime.Now;
@@ -98,9 +93,9 @@ namespace GoogleAPI.Persistance.Concreates
             log.ExceptionText = exceptioneader;
             log.LogEvent = exceptionText;
             log.UserName = "ADMIN";
-            log.RequestPath = RequestPath;
+
             await _lw.AddAsync(log);
-          
+
 
         }
 
@@ -115,9 +110,9 @@ namespace GoogleAPI.Persistance.Concreates
             log.UserName = "ADMIN";
 
             await _lw.AddAsync(log);
-          
+
         }
-        public async Task LogWarehouseError(string request, string exceptioneader, string? exceptionText, string? RequestPath)
+        public async Task LogWarehouseError(string request, string exceptioneader, string? exceptionText)
         {
             Log log = new Log();
             log.CreatedDate = DateTime.Now;
@@ -127,12 +122,12 @@ namespace GoogleAPI.Persistance.Concreates
             log.LogEvent = exceptionText;
             log.UserName = "ADMIN";
             log.Request = request;
-            log.RequestPath = RequestPath;
+  
             await _lw.AddAsync(log);
-          
+
 
         }
-        public async Task LogWarehouseWarn(string exceptioneader, string? exceptionText, string? RequestPath)
+        public async Task LogWarehouseWarn(string exceptioneader, string? exceptionText)
         {
             Log log = new Log();
             log.CreatedDate = DateTime.Now;
@@ -141,9 +136,9 @@ namespace GoogleAPI.Persistance.Concreates
             log.ExceptionText = exceptioneader;
             log.LogEvent = exceptionText;
             log.UserName = "ADMIN";
-            log.RequestPath = RequestPath;
+        
             await _lw.AddAsync(log);
-          
+
 
         }
 
@@ -158,7 +153,7 @@ namespace GoogleAPI.Persistance.Concreates
             log.UserName = "ADMIN";
 
             await _lw.AddAsync(log);
-          
+
         }
 
 
@@ -188,7 +183,7 @@ namespace GoogleAPI.Persistance.Concreates
                 query = query.Where(l => l.CreatedDate <= model.EndDate);
             }
 
-            if (model.Id !=0)
+            if (model.Id != 0)
             {
                 query = query.Where(l => l.Id == model.Id);
             }
@@ -202,11 +197,11 @@ namespace GoogleAPI.Persistance.Concreates
                 query = query.OrderByDescending(l => l.CreatedDate).Take(100);
             }
 
-             
+            logs = await query.ToListAsync();
 
             log_VMs = logs.Select(l => new Log_VM
             {
-                Id = l.Id,  
+                Id = l.Id,
                 ExceptionText = l.ExceptionText,
                 MessageHeader = l.MessageHeader,
                 Level = l.Level,
@@ -215,7 +210,7 @@ namespace GoogleAPI.Persistance.Concreates
                 CreatedDate = l.CreatedDate,
                 Request = l.Request,
                 RequestPath = l.RequestPath,
-       
+
             }).ToList();
 
             return log_VMs;

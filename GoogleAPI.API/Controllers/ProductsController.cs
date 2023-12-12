@@ -20,13 +20,17 @@ namespace GoogleAPI.API.Controllers
         private readonly string ErrorTextBase = "İstek Sırasında Hata Oluştu: ";
         private readonly IOrderService _orderService;
         private readonly ILogService _ls;
+        private readonly IGeneralService _gs;
+        private readonly IProductService _ps;
         public ProductsController(
-           GooleAPIDbContext context, IOrderService orderService,ILogService logService
+           GooleAPIDbContext context, IOrderService orderService,ILogService logService,IGeneralService gs,IProductService ps
         )
         {
             _ls = logService;
             _orderService = orderService;
             _context = context;
+            _gs = gs;
+            _ps = ps;
         }
         [HttpPost("SearchProduct")]
         public async Task<IActionResult> SearchProduct(BarcodeSearch_RM model)
@@ -85,20 +89,20 @@ namespace GoogleAPI.API.Controllers
         [HttpPost("GenerateBarcode_A")]
         public async Task<IActionResult> GenerateBarcode_A(BarcodeModel_A model)
         {
-            string methodName = await _orderService.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
-            string requestUrl = HttpContext.Request.Path + HttpContext.Request.QueryString;
+            string methodName = await _gs.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
+            
             try
             {
                 List<BarcodeModel_A> list = new List<BarcodeModel_A>();
                 list.Add(model);
-                string page = await _orderService.GenerateBarcode_A(list);
+                string page = await _ps.GenerateBarcode_A(list);
                 BarcodeModelResponse barcodeModelResponse = new BarcodeModelResponse();
                 barcodeModelResponse.Page = page;   
                 return Ok(barcodeModelResponse);
             }
             catch (Exception ex)
             {
-                await _ls.LogOrderError($"{HttpContext.Request.Path}", $"{methodName} Sırasında Hata Alındı", $"{ex.Message}", requestUrl);
+                await _ls.LogOrderError($"{HttpContext.Request.Path}", $"{methodName} Sırasında Hata Alındı", $"{ex.Message}");
                 return BadRequest(ErrorTextBase + ex.Message);
             }
         }
