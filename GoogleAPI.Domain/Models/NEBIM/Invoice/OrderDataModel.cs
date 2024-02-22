@@ -84,6 +84,8 @@
     }
     public class OrderLine
     {
+        public Guid? OrderLineId { get; set; }
+
         public string? ItemCode { get; set; }
         public string? UsedBarcode { get; set; }
         public string? SalesPersonCode { get; set; }
@@ -96,6 +98,7 @@
         public int Qty1 { get; set; }
         public string? DocCurrencyCode { get; set; }
         public string? CurrencyCode { get; set; }
+
 
     }
     public class OrderLineBP

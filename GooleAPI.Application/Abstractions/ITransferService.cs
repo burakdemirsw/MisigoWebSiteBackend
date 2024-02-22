@@ -27,7 +27,7 @@ namespace GoogleAPI.Persistance.Concreates
         Task<bool> ConfirmOperation(List<string> InnerNumberList);
         Task<List<TransferRequestListModel>> GetTransferRequestListModel( string type);
         Task<List<BarcodeModel>> GetOperationWarehousue(string innerNumber);
-        Task<List<WarehosueOperationListModel>> GetWarehosueOperationList( );
+        Task<List<WarehosueOperationListModel>> GetWarehosueOperationList(string status );
         Task<WarehosueOperationListModel> GetWarehosueOperationListByInnerNumber(string innerNumber);
     }
 }

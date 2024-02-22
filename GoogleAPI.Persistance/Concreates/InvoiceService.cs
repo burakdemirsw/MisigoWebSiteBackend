@@ -259,7 +259,7 @@ namespace GoogleAPI.Persistance.Concreates
                                     InvoiceDate = DateTime.Now.ToString("yyyy-MM-dd"),
                                     Description = orderData.InternalDescription, //siparisNo
                                     InternalDescription = orderData.InternalDescription, //siparisNo
-                                    IsOrderBase = false,
+                                    IsOrderBase = true,
                                     IsCreditSale = true,
                                     ShipmentMethodCode = orderData.ShipmentMethodCode,
                                     CompanyCode = orderData.CompanyCode,
@@ -310,7 +310,7 @@ namespace GoogleAPI.Persistance.Concreates
                                     InvoiceDate =requestModel.InvoiceDate == null ?  DateTime.Now.ToString("yyyy-MM-dd") : requestModel.InvoiceDate?.ToString("yyyy-MM-dd"),
                                     Description = orderData.InternalDescription, //siparisNo
                                     InternalDescription = orderData.InternalDescription, //siparisNo
-                                    IsOrderBase = false,
+                                    IsOrderBase = true,
                                     IsCreditSale = true,
                                     ShipmentMethodCode = orderData.ShipmentMethodCode,
                                     CompanyCode = orderData.CompanyCode,
@@ -422,6 +422,7 @@ namespace GoogleAPI.Persistance.Concreates
                                         var jsonModel6 = new
                                         {
                                             ModelType = 7,
+                                            
                                             CustomerCode = orderData.CurrAccCode,
                                             InvoiceNumber = orderData.OrderNumber,
                                             PosTerminalID = 1,
@@ -430,7 +431,7 @@ namespace GoogleAPI.Persistance.Concreates
                                             InvoiceDate = DateTime.Now.ToString("yyyy-MM-dd"),
                                             Description = orderData.Description, //siparisNo
                                             InternalDescription = orderData.InternalDescription, //siparisNo
-                                            IsOrderBase = false,
+                                            IsOrderBase = true,
                                             IsCreditSale = true,
                                             ShipmentMethodCode = orderData.ShipmentMethodCode,
                                             CompanyCode = orderData.CompanyCode,
@@ -460,7 +461,7 @@ namespace GoogleAPI.Persistance.Concreates
                                             InvoiceDate = DateTime.Now.ToString("yyyy-MM-dd"),
                                             Description = orderData.Description, //siparisNo
                                             InternalDescription = orderData.InternalDescription, //siparisNo
-                                            IsOrderBase = false,
+                                            IsOrderBase = true,
                                             IsCreditSale = true,
                                             ShipmentMethodCode = orderData.ShipmentMethodCode,
                                             CompanyCode = orderData.CompanyCode,

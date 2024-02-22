@@ -138,10 +138,10 @@ namespace GoogleAPI.Persistance.Concreates
             return warehouseModels;
 
         }
-        public async Task<List<WarehosueOperationListModel>> GetWarehosueOperationList( )
+        public async Task<List<WarehosueOperationListModel>> GetWarehosueOperationList( string status)
         {
 
-            List<WarehosueOperationListModel> saleOrderModel = await _context.ztWarehosueOperationListModel.FromSqlRaw("GET_GetWarehosueOperationList").ToListAsync();
+            List<WarehosueOperationListModel> saleOrderModel = await _context.ztWarehosueOperationListModel.FromSqlRaw($"GET_GetWarehosueOperationList {status}").ToListAsync();
 
             return saleOrderModel;
 

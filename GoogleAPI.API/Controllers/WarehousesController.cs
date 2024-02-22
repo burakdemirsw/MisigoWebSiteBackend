@@ -100,12 +100,12 @@ namespace GoogleAPI.API.Controllers
             }
         }
 
-        [HttpGet("GetWarehosueOperationList")]
-        public async Task<IActionResult> GetWarehosueOperationList( )
+        [HttpGet("GetWarehosueOperationList/{status}")]
+        public async Task<IActionResult> GetWarehosueOperationList(string status )
         {
             try
             {
-                List<WarehosueOperationListModel> saleOrderModel = await _ts.GetWarehosueOperationList();
+                List<WarehosueOperationListModel> saleOrderModel = await _ts.GetWarehosueOperationList(status);
 
                 return Ok(saleOrderModel);
             }
