@@ -2,18 +2,11 @@
 using GoogleAPI.Persistance.Concreates;
 using GoogleAPI.Persistance.Concretes;
 using GoogleAPI.Persistance.Contexts;
-using GoogleAPI.Persistance.Repositories;
 using GooleAPI.Application.Abstractions;
 using GooleAPI.Application.IRepositories;
 using GooleAPI.Application.IRepositories.Log;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace GooleAPI.Infrastructure
 {
@@ -49,6 +42,7 @@ namespace GooleAPI.Infrastructure
             services.AddScoped<IInvoiceService, InvoiceService>();
             services.AddScoped<ITransferService, TransferService>();
             services.AddScoped<ICountService, CountService>();
+            services.AddScoped<IProductService, ProductService>();
 
 
         }

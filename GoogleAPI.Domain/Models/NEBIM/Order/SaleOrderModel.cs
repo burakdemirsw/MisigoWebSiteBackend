@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace GoogleAPI.Domain.Models.NEBIM.Order
+﻿namespace GoogleAPI.Domain.Models.NEBIM.Order
 {
     public class SaleOrderModel
     {
@@ -13,12 +7,13 @@ namespace GoogleAPI.Domain.Models.NEBIM.Order
         public string? CurrAccCode { get; set; }
         public string? CurrAccDescription { get; set; }
         public string? SalespersonCode { get; set; }
-        public double? Qty1 { get; set; }
+        public int? Qty1 { get; set; }
         public int? Price { get; set; }
         public int? CollectedQty { get; set; }
         public int? Status { get; set; }
         public int? RemainingQty { get; set; }
         public string? Description { get; set; }
+        public int InvoiceStatus { get; set; }
 
 
     }

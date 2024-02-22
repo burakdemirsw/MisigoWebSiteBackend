@@ -1,11 +1,6 @@
 ﻿using GoogleAPI.Domain.Entities.Common;
 using GoogleAPI.Domain.Models.Filter;
 using GoogleAPI.Domain.Models.ViewModels;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace GooleAPI.Application.Abstractions
 {
@@ -20,7 +15,7 @@ namespace GooleAPI.Application.Abstractions
         Task LogWarehouseWarn(string exceptioneader, string? exceptionText);
         Task LogWarehouseSuccess(string exceptioneader, string? exceptionText);
 
-        Task LogInvoiceError(string request,string exceptioneader, string? exceptionText);
+        Task LogInvoiceError(string request, string exceptioneader, string? exceptionText);
         Task LogInvoiceWarn(string exceptioneader, string? exceptionText);
         Task LogInvoiceSuccess(string exceptioneader, string? exceptionText);
         Task<List<Log_VM>> GetLogs(LogFilterModel model);

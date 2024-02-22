@@ -24,7 +24,7 @@ namespace GoogleAPI.Persistance.Contexts
         {
 
             modelBuilder.Entity<WarehosueOperationListModel>().HasNoKey();
-            modelBuilder.Entity<SaleOrderModel>().HasNoKey();         
+            modelBuilder.Entity<SaleOrderModel>().HasNoKey();
             modelBuilder.Entity<BarcodeModel>().HasNoKey();
             modelBuilder.Entity<OrderSaleDetailModel>().HasNoKey();
             modelBuilder.Entity<OrderBillingModel>().HasNoKey();
@@ -33,8 +33,8 @@ namespace GoogleAPI.Persistance.Contexts
             modelBuilder.Entity<WarehouseOfficeModel>().HasNoKey();
             modelBuilder.Entity<WarehosueOperationListModel>().HasNoKey();
             modelBuilder.Entity<WarehouseOperationDetailModel>().HasNoKey();
-            modelBuilder.Entity<InvoiceNumberModel>().HasNoKey(); 
-            modelBuilder.Entity<RemainingProductsModel>().HasNoKey(); 
+            modelBuilder.Entity<InvoiceNumberModel>().HasNoKey();
+            modelBuilder.Entity<RemainingProductsModel>().HasNoKey();
             modelBuilder.Entity<CountProductRequestModel>().HasNoKey();
             modelBuilder.Entity<ProductCountModel>().HasNoKey();
             modelBuilder.Entity<ProductCountModel2>().HasNoKey();
@@ -58,13 +58,24 @@ namespace GoogleAPI.Persistance.Contexts
             modelBuilder.Entity<QrControlModel>().HasNoKey();
             modelBuilder.Entity<InventoryItemModel>().HasNoKey();
             modelBuilder.Entity<TransferRequestListModel>().HasNoKey();
-             modelBuilder.Entity<InventoryResponseModel>().HasNoKey();
+            modelBuilder.Entity<InventoryResponseModel>().HasNoKey();
             modelBuilder.Entity<AvailableShelf>().HasNoKey();
+            modelBuilder.Entity<ProductCountModel3>().HasNoKey();
+            modelBuilder.Entity<QrOperationResponse>().HasNoKey();
+            modelBuilder.Entity<DestroyItem_Response>().HasNoKey();
+            modelBuilder.Entity<InvoiceOfCustomer_VM>().HasNoKey();
 
 
         }
         //
-        //Description
+        //Description ProductCountModel3 QrOperationResponse DestroyItem_Response InvoiceOfCustomer_VM
+        public DbSet<InvoiceOfCustomer_VM>? InvoiceOfCustomer_VM { get; set; }
+
+        public DbSet<QrOperationResponse>? QrOperationResponse { get; set; }
+        public DbSet<DestroyItem_Response>? DestroyItem_Response { get; set; }
+
+        public DbSet<ProductCountModel3>? ProductCountModel3 { get; set; }
+
         public DbSet<AvailableShelf>? AvailableShelfs { get; set; }
 
         public DbSet<TransferRequestListModel>? TransferRequestListModels { get; set; }
@@ -94,18 +105,18 @@ namespace GoogleAPI.Persistance.Contexts
         public DbSet<CountListModel>? CountListModels { get; set; }
         public DbSet<CountedProduct>? CountedProducts { get; set; }
 
-        public DbSet<SalesPersonModel>? SalesPersonModels { get; set; } 
+        public DbSet<SalesPersonModel>? SalesPersonModels { get; set; }
         public DbSet<CollectedProduct>? CollectedProducts { get; set; }
         public DbSet<QrControlModel>? QrControlModel { get; set; }
 
-        public DbSet<EInvoiceModel>? ztEInvoiceModel { get; set; } 
-        public DbSet<CreatePurchaseInvoice>? ztCreatePurchaseInvoice { get; set; } 
+        public DbSet<EInvoiceModel>? ztEInvoiceModel { get; set; }
+        public DbSet<CreatePurchaseInvoice>? ztCreatePurchaseInvoice { get; set; }
 
-        public DbSet<OrderData>? ztOrderData { get; set; } 
+        public DbSet<OrderData>? ztOrderData { get; set; }
 
-        public DbSet<RecepieModel>? ztRecepieModel { get; set; } 
-        public DbSet<Domain.Models.NEBIM.Order.Invoice>? ztInvoice { get; set; } 
-        public DbSet<WarehosueOperationListModel>? ztWarehosueOperationListModel { get; set; } 
+        public DbSet<RecepieModel>? ztRecepieModel { get; set; }
+        public DbSet<Domain.Models.NEBIM.Order.Invoice>? ztInvoice { get; set; }
+        public DbSet<WarehosueOperationListModel>? ztWarehosueOperationListModel { get; set; }
         public DbSet<WarehouseOperationDetailModel>? ztWarehosueOperationDetail { get; set; } //
         public DbSet<OrderBillingModel>? ztOrderBillingModel { get; set; }
         public DbSet<ProductOfOrderModel>? ztProductOfOrderModel { get; set; }
@@ -114,9 +125,9 @@ namespace GoogleAPI.Persistance.Contexts
         public DbSet<ShelfModel>? ztShelves { get; set; }
 
         public DbSet<CategoryModel>? ztCategories { get; set; }
-        public DbSet<BarcodeAddModel>? ztBarcodeAddModel { get; set; } 
+        public DbSet<BarcodeAddModel>? ztBarcodeAddModel { get; set; }
         public DbSet<BarcodeModel>? BarcodeModels { get; set; }
-        public DbSet<OrderSaleDetailModel>? OrderSaleDetails { get; set; } 
+        public DbSet<OrderSaleDetailModel>? OrderSaleDetails { get; set; }
         public DbSet<OfficeModel>? ztOfficeModel { get; set; }
         public DbSet<WarehouseOfficeModel>? ztWarehouseModel { get; set; }
         public DbSet<ReadyToShipmentPackageModel>? ztReadyToShipmentPackageModel { get; set; }
@@ -126,7 +137,7 @@ namespace GoogleAPI.Persistance.Contexts
         public DbSet<CustomerModel>? ztCustomerModel { get; set; } //InventoryResponseModel
         public DbSet<InventoryResponseModel>? InventoryResponseModels { get; set; }
 
-        public DbSet<ProductCountModel>? ztProductCountModel { get; set; } 
+        public DbSet<ProductCountModel>? ztProductCountModel { get; set; }
 
         public override async Task<int> SaveChangesAsync(
             CancellationToken cancellationToken = default

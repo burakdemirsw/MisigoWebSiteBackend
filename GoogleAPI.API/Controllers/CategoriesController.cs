@@ -1,9 +1,5 @@
-﻿using Antlr.Runtime.Tree;
-using GoogleAPI.Domain.Models.NEBIM.Category;
-using GoogleAPI.Persistance.Contexts;
-using Microsoft.AspNetCore.Http;
+﻿using GoogleAPI.Persistance.Contexts;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace GoogleAPI.API.Controllers
 {

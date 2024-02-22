@@ -1,12 +1,4 @@
-﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection.Metadata.Ecma335;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace GoogleAPI.Domain.Models.NEBIM.Request
+﻿namespace GoogleAPI.Domain.Models.NEBIM.Request
 {
 
 
@@ -27,60 +19,60 @@ namespace GoogleAPI.Domain.Models.NEBIM.Request
         //[JsonProperty("StatusCode")]
         public int StatusCode { get; set; }
     }
-        public class ExceptionMessage
-        {
-            //[JsonProperty("ItemInfo")]
-            public ItemInfo ItemInfo { get; set; }
+    public class ExceptionMessage
+    {
+        //[JsonProperty("ItemInfo")]
+        public ItemInfo ItemInfo { get; set; }
 
-            //[JsonProperty("Message")]
-            public string? Message { get; set; }
+        //[JsonProperty("Message")]
+        public string? Message { get; set; }
 
-        }
-  
+    }
 
-        public class ItemInfo
-        {
-            //[JsonProperty("ItemTypeCode")]
-            public int ItemTypeCode { get; set; }
 
-            //[JsonProperty("ItemCode")]
-            public string? ItemCode { get; set; }
+    public class ItemInfo
+    {
+        //[JsonProperty("ItemTypeCode")]
+        public int ItemTypeCode { get; set; }
 
-            //[JsonProperty("ItemDescription")]
-            public string? ItemDescription { get; set; }
+        //[JsonProperty("ItemCode")]
+        public string? ItemCode { get; set; }
 
-            //[JsonProperty("ColorCode")]
-            public string? ColorCode { get; set; }
+        //[JsonProperty("ItemDescription")]
+        public string? ItemDescription { get; set; }
 
-            //[JsonProperty("ItemDim1Code")]
-            public string? ItemDim1Code { get; set; }
+        //[JsonProperty("ColorCode")]
+        public string? ColorCode { get; set; }
 
-            //[JsonProperty("ItemDim2Code")]
-            public string? ItemDim2Code { get; set; }
+        //[JsonProperty("ItemDim1Code")]
+        public string? ItemDim1Code { get; set; }
 
-            //[JsonProperty("ItemDim3Code")]
-            public string? ItemDim3Code { get; set; }
+        //[JsonProperty("ItemDim2Code")]
+        public string? ItemDim2Code { get; set; }
 
-            //[JsonProperty("BatchCode")]
-            public string? BatchCode { get; set; }
+        //[JsonProperty("ItemDim3Code")]
+        public string? ItemDim3Code { get; set; }
 
-            //[JsonProperty("SectionCode")]
-            public string? SectionCode { get; set; }
+        //[JsonProperty("BatchCode")]
+        public string? BatchCode { get; set; }
 
-            //[JsonProperty("Quantity")]
-            public int Quantity { get; set; }
+        //[JsonProperty("SectionCode")]
+        public string? SectionCode { get; set; }
 
-            //[JsonProperty("Permit")]
-            public bool Permit { get; set; }
+        //[JsonProperty("Quantity")]
+        public int Quantity { get; set; }
 
-            //[JsonProperty("AvailableInventoryQty1")]
-            public int AvailableInventoryQty1 { get; set; }
+        //[JsonProperty("Permit")]
+        public bool Permit { get; set; }
 
-            //[JsonProperty("Description")]
-            public string? Description { get; set; }
+        //[JsonProperty("AvailableInventoryQty1")]
+        public int AvailableInventoryQty1 { get; set; }
 
-            //[JsonProperty("IsBatchProduct")]
-            public bool IsBatchProduct { get; set; }
-        }
+        //[JsonProperty("Description")]
+        public string? Description { get; set; }
+
+        //[JsonProperty("IsBatchProduct")]
+        public bool IsBatchProduct { get; set; }
+    }
 
 }

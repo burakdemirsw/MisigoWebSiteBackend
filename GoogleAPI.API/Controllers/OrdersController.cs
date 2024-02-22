@@ -1,29 +1,21 @@
 ﻿using GoogleAPI.Domain.Models.Filter;
-using GoogleAPI.Domain.Models.NEBIM;
 using GoogleAPI.Domain.Models.NEBIM.Customer;
 using GoogleAPI.Domain.Models.NEBIM.Invoice;
 using GoogleAPI.Domain.Models.NEBIM.Order;
 using GoogleAPI.Domain.Models.NEBIM.Product;
-using GoogleAPI.Domain.Models.NEBIM.Request;
 using GoogleAPI.Domain.Models.NEBIM.Shelf;
 using GoogleAPI.Domain.Models.NEBIM.Warehouse;
 using GoogleAPI.Persistance.Concreates;
 using GoogleAPI.Persistance.Contexts;
 using GooleAPI.Application.Abstractions;
-using Microsoft.AspNetCore.Cors;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Extensions;
+using GooleAPI.Application.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-
 using System.Drawing;
 using System.Drawing.Printing;
 using System.Net;
 using System.Reflection;
-using System.Text;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace GoogleAPI.API.Controllers
 {
@@ -39,11 +31,11 @@ namespace GoogleAPI.API.Controllers
         private IInvoiceService _is;
         private ITransferService _ts;
         private ICountService _cs;
-        private readonly string IpAdresi = "http://192.168.2.36:7676";
+   
         public OrdersController(
           GooleAPIDbContext context,
-          IOrderService orderService, ILogService ls,IGeneralService gs, IInvoiceService invoiceService,ITransferService ts,ICountService cs
-        
+          IOrderService orderService, ILogService ls, IGeneralService gs, IInvoiceService invoiceService, ITransferService ts, ICountService cs
+
         )
         {
             _os = orderService;
@@ -55,15 +47,13 @@ namespace GoogleAPI.API.Controllers
             _cs = cs;
         }
 
-
-
         #region SIPARIS-------------------------------------------------------------------
-        [HttpGet]
-        public async Task<IActionResult> GetOrders( ) //çalışıyor
+        [HttpGet("get-sale-orders/{type}")]
+        public async Task<IActionResult> GetSaleOrders(int type) // 1-> toplanabilir 2->toplanamaz
         {
             try
             {
-                List<SaleOrderModel> saleOrderModel = await _os.GetOrders();
+                List<SaleOrderModel> saleOrderModel = await _os.GetSaleOrders(type);
 
                 return Ok(saleOrderModel);
             }
@@ -71,11 +61,31 @@ namespace GoogleAPI.API.Controllers
             {
 
                 string methodName = await _gs.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
-                
+
                 await _ls.LogOrderWarn($"{methodName} Sırasında Hata Alındı", $"{ex.Message}");
                 return BadRequest(ErrorTextBase + ex.Message);
             }
         }
+
+        [HttpGet("get-orders-with-missing-items")]
+        public async Task<IActionResult> GetSaleOrdersWithMissingItems() // 1-> toplanabilir 2->toplanamaz
+        {
+            try
+            {
+                List<SaleOrderModel> saleOrderModel = await _os.GetSaleOrdersWithMissingItems();
+
+                return Ok(saleOrderModel);
+            }
+            catch (Exception ex)
+            {
+
+                string methodName = await _gs.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
+
+                await _ls.LogOrderWarn($"{methodName} Sırasında Hata Alındı", $"{ex.Message}");
+                return BadRequest(ErrorTextBase + ex.Message);
+            }
+        }
+
 
         [HttpPost("GetOrdersByFilter")]
         public async Task<IActionResult> GetOrdersByFilter(OrderFilterModel model)
@@ -91,7 +101,7 @@ namespace GoogleAPI.API.Controllers
             catch (Exception ex)
             {
                 string methodName = await _gs.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
-                
+
                 await _ls.LogOrderWarn($"{methodName} Sırasında Hata Alındı", $"{ex.Message}");
                 return BadRequest(ErrorTextBase + ex.Message);
             }
@@ -110,7 +120,7 @@ namespace GoogleAPI.API.Controllers
             {
 
                 string methodName = await _gs.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
-                
+
                 await _ls.LogOrderWarn($"{methodName} Sırasında Hata Alındı", $"{ex.Message}");
                 return BadRequest(ErrorTextBase + ex.Message);
             }
@@ -130,7 +140,7 @@ namespace GoogleAPI.API.Controllers
             {
 
                 string methodName = await _gs.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
-                
+
                 await _ls.LogOrderWarn($"{methodName} Sırasında Hata Alındı", $"{ex.Message}");
                 return BadRequest(ErrorTextBase + ex.Message);
 
@@ -141,7 +151,7 @@ namespace GoogleAPI.API.Controllers
         [HttpGet("GetCollectedOrderProducts/{orderNumber}")]
         public async Task<IActionResult> GetCollectedOrderProducts(string orderNumber)
         {
-            
+
             string methodName = await _gs.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
 
             try
@@ -163,17 +173,17 @@ namespace GoogleAPI.API.Controllers
         public async Task<IActionResult> SetInventoryByOrderNumber(String orderNumber)
         {
             string methodName = await _gs.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
-            
+
 
             try
             {
 
 
-              var response = await _os.SetInventoryByOrderNumber(orderNumber);
+                var response = await _os.SetInventoryByOrderNumber(orderNumber);
 
-                if(response)
+                if (response)
                 {
-                    return Ok(response);    
+                    return Ok(response);
                 }
                 else
                 {
@@ -194,7 +204,7 @@ namespace GoogleAPI.API.Controllers
         {
             try
             {
-                List<SaleOrderModel> saleOrderModel =await  _os.GetPurchaseOrders();
+                List<SaleOrderModel> saleOrderModel = await _os.GetPurchaseOrders();
 
                 return Ok(saleOrderModel);
             }
@@ -202,7 +212,7 @@ namespace GoogleAPI.API.Controllers
             {
 
                 string methodName = await _gs.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
-                
+
                 await _ls.LogOrderWarn($"{methodName} Sırasında Hata Alındı", $"{ex.Message}");
                 return BadRequest(ErrorTextBase + ex.Message);
             }
@@ -222,7 +232,7 @@ namespace GoogleAPI.API.Controllers
             catch (Exception ex)
             {
                 string methodName = await _gs.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
-                
+
                 await _ls.LogOrderWarn($"{methodName} Sırasında Hata Alındı", $"{ex.Message}");
                 return BadRequest(ErrorTextBase + ex.Message);
             }
@@ -241,7 +251,7 @@ namespace GoogleAPI.API.Controllers
             {
 
                 string methodName = await _gs.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
-                
+
                 await _ls.LogOrderWarn($"{methodName} Sırasında Hata Alındı", $"{ex.Message}");
                 return BadRequest(ErrorTextBase + ex.Message);
             }
@@ -261,7 +271,7 @@ namespace GoogleAPI.API.Controllers
             {
 
                 string methodName = await _gs.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
-                
+
                 await _ls.LogOrderWarn($"{methodName} Sırasında Hata Alındı", $"{ex.Message}");
                 return BadRequest(ErrorTextBase + ex.Message);
             }
@@ -283,7 +293,7 @@ namespace GoogleAPI.API.Controllers
                 else
                 {
                     string methodName = await _gs.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
-                    
+
                     await _ls.LogOrderWarn($"{methodName} Sırasında Hata Alındı", $"{ErrorTextBase}");
                     return BadRequest(ErrorTextBase + "Null Object!");
 
@@ -293,7 +303,7 @@ namespace GoogleAPI.API.Controllers
             {
 
                 string methodName = await _gs.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
-                
+
                 await _ls.LogOrderWarn($"{methodName} Sırasında Hata Alındı", $"{ex.Message}");
                 return BadRequest(ErrorTextBase + ex.Message);
             }
@@ -312,7 +322,7 @@ namespace GoogleAPI.API.Controllers
             catch (Exception ex)
             {
                 string methodName = await _gs.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
-                
+
                 await _ls.LogOrderWarn($"{methodName} Sırasında Hata Alındı", $"{ex.Message}");
                 return BadRequest(ErrorTextBase + ex.Message);
             }
@@ -331,7 +341,7 @@ namespace GoogleAPI.API.Controllers
             catch (Exception ex)
             {
                 string methodName = await _gs.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
-                
+
                 await _ls.LogOrderWarn($"{methodName} Sırasında Hata Alındı", $"{ex.Message}");
                 return BadRequest(ErrorTextBase + ex.Message);
             }
@@ -343,7 +353,7 @@ namespace GoogleAPI.API.Controllers
             try
             {
 
-               
+
                 int affectedRows = await _os.PutReadyToShipmentPackagesStatusById(id);
 
                 return Ok(affectedRows);
@@ -351,7 +361,7 @@ namespace GoogleAPI.API.Controllers
             catch (Exception ex)
             {
                 string methodName = await _gs.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
-                
+
                 await _ls.LogOrderWarn($"{methodName} Sırasında Hata Alındı", $"{ex.Message}");
                 return BadRequest(ErrorTextBase + ex.Message);
             }
@@ -370,7 +380,7 @@ namespace GoogleAPI.API.Controllers
             {
 
                 string methodName = await _gs.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
-                
+
                 await _ls.LogOrderWarn($"{methodName} Sırasında Hata Alındı", $"{ex.Message}");
                 return BadRequest(ErrorTextBase + ex.Message);
 
@@ -378,13 +388,35 @@ namespace GoogleAPI.API.Controllers
 
         }
 
+        [HttpGet("get-missing-products-of-order/{orderNumber}")]
+        public async Task<IActionResult> GetMissingProductsOfOrder(string orderNumber)
+        {
+
+            try
+            {
+                List<ProductOfOrderModel> orderSaleDetails = await _os.GetMissingProductsOfOrder(orderNumber);
+                return Ok(orderSaleDetails);
+            }
+            catch (Exception ex)
+            {
+
+                string methodName = await _gs.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
+
+                await _ls.LogOrderWarn($"{methodName} Sırasında Hata Alındı", $"{ex.Message}");
+                return BadRequest(ErrorTextBase + ex.Message);
+
+            }
+
+        }
+
+
         [HttpGet("GetOrderSaleDetailById/{PackageId}")]
         public async Task<IActionResult> GetOrderSaleDetailByPackageId(string PackageId)
         {
 
             try
             {
-                List<ProductOfOrderModel> orderSaleDetails = await  _os.GetPurchaseOrderSaleDetail(PackageId);
+                List<ProductOfOrderModel> orderSaleDetails = await _os.GetPurchaseOrderSaleDetail(PackageId);
                 //BarcodeModel barcodeModel = barcodeModels.FirstOrDefault();
                 return Ok(orderSaleDetails);
             }
@@ -392,7 +424,7 @@ namespace GoogleAPI.API.Controllers
             {
 
                 string methodName = await _gs.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
-                
+
                 await _ls.LogOrderWarn($"{methodName} Sırasında Hata Alındı", $"{ex.Message}");
                 return BadRequest(ErrorTextBase + ex.Message);
 
@@ -407,12 +439,12 @@ namespace GoogleAPI.API.Controllers
         public async Task<IActionResult> GetInvoiceList( )
         {
             string methodName = await _gs.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
-            
+
 
             try
             {
-                List<CountListModel> countListModels = await  _is.GetInvoiceList();
-       
+                List<CountListModel> countListModels = await _is.GetInvoiceList();
+
 
                 return Ok(countListModels);
             }
@@ -437,7 +469,7 @@ namespace GoogleAPI.API.Controllers
             {
 
                 string methodName = await _gs.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
-                
+
                 await _ls.LogOrderWarn($"{methodName} Sırasında Hata Alındı", $"{ex.Message}");
                 return BadRequest(ErrorTextBase + ex.Message);
             }
@@ -447,13 +479,13 @@ namespace GoogleAPI.API.Controllers
         public async Task<IActionResult> DeleteInvoiceProducts(string orderNumber)
         {
             string methodName = await _gs.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
-            
+
             try
             {
                 bool affectedRow = await _is.DeleteInvoiceProducts(orderNumber);
                 if (affectedRow)
                 {
-                    
+
                     return Ok(true);
                 }
                 else
@@ -476,8 +508,8 @@ namespace GoogleAPI.API.Controllers
         [HttpPost("CollectAndPack/{orderNo}")]
         public async Task<IActionResult> BillingOrder(OrderBillingRequestModel model)
         {
-            
-            
+
+
             try
             {
                 var response = await _is.BillingOrder(model, HttpContext);
@@ -493,7 +525,7 @@ namespace GoogleAPI.API.Controllers
         public async Task<IActionResult> GetSalesPersonModels( )
         {
             string methodName = await _gs.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
-            
+
 
             try
             {
@@ -530,7 +562,7 @@ namespace GoogleAPI.API.Controllers
             {
 
                 string methodName = await _gs.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
-                
+
                 await _ls.LogOrderWarn($"{methodName} Sırasında Hata Alındı", $"{ex.Message}");
                 return BadRequest(ErrorTextBase + ex.Message);
 
@@ -597,15 +629,16 @@ namespace GoogleAPI.API.Controllers
         #endregion -----------------------------------------------------------------------
 
         #region SAYIM-------------------------------------------------------------------
-        [HttpGet("CompleteCount/{orderNumber}")]
-        public async Task<IActionResult> CompleteCount(string orderNumber)
+
+        [HttpGet("CompleteCount/{orderNumber}/{isShelfBased}/{isShelfBased2}")]
+        public async Task<IActionResult> CompleteCount(string orderNumber, bool isShelfBased, bool isShelfBased2)
         {
             string methodName = await _gs.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
-            
+
             try
             {
-               bool response = await _cs.CompleteCount(orderNumber);
-                return Ok(response);    
+                bool response = await _cs.CompleteCount(orderNumber, isShelfBased, isShelfBased2);
+                return Ok(response);
 
             }
             catch (Exception ex)
@@ -645,7 +678,7 @@ namespace GoogleAPI.API.Controllers
         public async Task<IActionResult> DeleteProductOfCount(DeleteProductOfCount model)
         {
             string methodName = await _gs.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
-            
+
 
 
             try
@@ -662,13 +695,13 @@ namespace GoogleAPI.API.Controllers
             }
         }
 
-       
+
         [HttpGet("GetCountList")]
         public async Task<IActionResult> GetCountList( )
         {
             try
             {
-                List<CountListModel> countListModels = await _cs.GetCountList();    
+                List<CountListModel> countListModels = await _cs.GetCountList();
 
                 return Ok(countListModels);
             }
@@ -676,7 +709,7 @@ namespace GoogleAPI.API.Controllers
             {
 
                 string methodName = await _gs.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
-                
+
                 await _ls.LogOrderWarn($"{methodName} Sırasında Hata Alındı", $"{ex.Message}");
                 return BadRequest(ErrorTextBase + ex.Message);
             }
@@ -687,7 +720,7 @@ namespace GoogleAPI.API.Controllers
         {
             try
             {
-               
+
                 List<CountListModel> countListModels = await _cs.GetCountListByFilter(filter);
 
                 return Ok(countListModels);
@@ -695,7 +728,7 @@ namespace GoogleAPI.API.Controllers
             catch (Exception ex)
             {
                 string methodName = await _gs.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
-                
+
                 await _ls.LogOrderWarn($"{methodName} Sırasında Hata Alındı", $"{ex.Message}");
                 return BadRequest(ErrorTextBase + ex.Message);
             }
@@ -716,7 +749,7 @@ namespace GoogleAPI.API.Controllers
                 else
                 {
                     string methodName = await _gs.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
-                    
+
                     await _ls.LogOrderWarn($"{methodName} Sırasında Hata Alındı", $"{ErrorTextBase}");
                     return BadRequest(ErrorTextBase);
                 }
@@ -726,21 +759,21 @@ namespace GoogleAPI.API.Controllers
             {
 
                 string methodName = await _gs.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
-                
+
                 await _ls.LogOrderWarn($"{methodName} Sırasında Hata Alındı", $"{ex.Message}");
                 return BadRequest(ErrorTextBase + ex.Message);
             }
         }
 
-        [HttpPost("CountProductPurchase")] 
+        [HttpPost("CountProductPurchase")]
 
         public async Task<ActionResult<string>> CountProduct(CreatePurchaseInvoice model)
         {
             string methodName = await _gs.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
 
             try
-            { 
-           
+            {
+
                 ProductCountModel productCountModel = await _cs.CountProduct(model);
                 if (productCountModel != null)
                 {
@@ -764,12 +797,12 @@ namespace GoogleAPI.API.Controllers
         }
 
 
-        [HttpPost("CountTransferProduct")] 
+        [HttpPost("CountTransferProduct")]
 
         public async Task<ActionResult<string>> CountTransferProduct(WarehouseFormModel model)
         {
             string methodName = await _gs.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
-            
+
             try
             {
 
@@ -801,7 +834,7 @@ namespace GoogleAPI.API.Controllers
             try
             {
 
-                ProductCountModel? productCountModel =await _cs.CountProduct3(model);
+                ProductCountModel? productCountModel = await _cs.CountProduct3(model);
                 return Ok(productCountModel);
 
             }
@@ -809,8 +842,29 @@ namespace GoogleAPI.API.Controllers
             {
 
                 string methodName = await _gs.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
+                string errorModelJson = JsonConvert.SerializeObject(model);
+                await _ls.LogOrderWarn($"{methodName} Sırasında Hata Alındı", $"{ex.Message + errorModelJson }");
+                return BadRequest(ErrorTextBase + ex.Message);
+            }
+        }
 
-                await _ls.LogOrderWarn($"{methodName} Sırasında Hata Alındı", $"{ex.Message}");
+        [HttpPost("CountProduct4")] //sayımda kullanılan sp
+
+        public async Task<ActionResult<string>> CountProduct4(CountProductRequestModel3 model)
+        {
+            try
+            {
+
+                ProductCountModel? productCountModel = await _cs.CountProduct4(model);
+                return Ok(productCountModel);
+
+            }
+            catch (Exception ex)
+            {
+
+                string methodName = await _gs.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
+                string errorModelJson = JsonConvert.SerializeObject(model);
+                await _ls.LogOrderWarn($"{methodName} Sırasında Hata Alındı", $"{ex.Message + errorModelJson}");
                 return BadRequest(ErrorTextBase + ex.Message);
             }
         }
@@ -820,15 +874,15 @@ namespace GoogleAPI.API.Controllers
         public async Task<ActionResult<string>> CountProductControl(CountProductRequestModel2 model)
         {
             string methodName = await _gs.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
-            
+
             try
             {
 
 
                 ProductCountModel productCountModel = await _cs.CountProductControl(model);
 
-                return Ok(productCountModel);   
-               
+                return Ok(productCountModel);
+
 
             }
             catch (Exception ex)
@@ -843,7 +897,7 @@ namespace GoogleAPI.API.Controllers
         public async Task<ActionResult> CountTransfer(WarehouseFormModel model)
         {
             string methodName = await _gs.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
-            
+
             try
             {
                 string query = $"exec CountTransfer'";
@@ -871,11 +925,41 @@ namespace GoogleAPI.API.Controllers
         public async Task<IActionResult> GetShelvesOfProduct(string barcode)
         {
             string methodName = await _gs.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
-            
+
             try
             {
                 List<ProductCountModel> productCountModel = await _cs.GetShelvesOfProduct(barcode);
                 ;
+                if (productCountModel != null)
+                {
+                    return Ok(productCountModel);
+                }
+                else
+                {
+
+                    await _ls.LogOrderWarn($"{methodName} Sırasında Hata Alındı", $"{ErrorTextBase}");
+                    return BadRequest(ErrorTextBase);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                await _ls.LogOrderWarn($"{methodName} Sırasında Hata Alındı", $"{ex.Message}");
+                return BadRequest(ErrorTextBase + ex.Message);
+            }
+        }
+
+        [HttpPost("GetShelvesOfProduct2")] //sadece rafları ddöndürür
+
+        public async Task<IActionResult> GetShelvesOfProduct2(QrControlCommandModel model)
+        {
+            string methodName = await _gs.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
+
+            try
+            {
+               
+                List<ProductCountModel3> productCountModel = await _cs.GetShelvesOfProduct2(model.Qr);
+                
                 if (productCountModel != null)
                 {
                     return Ok(productCountModel);
@@ -900,12 +984,12 @@ namespace GoogleAPI.API.Controllers
         public async Task<IActionResult> CountProductByBarcode2(string barcode)
         {
             string methodName = await _gs.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
-            
+
             try
             {
-               
+
                 List<ProductCountModel2> productCountModel = await _cs.CountProductByBarcode2(barcode);
-                
+
                 if (productCountModel != null)
                 {
                     return Ok(productCountModel);
@@ -921,6 +1005,70 @@ namespace GoogleAPI.API.Controllers
             {
                 await _ls.LogOrderWarn($"{methodName} Sırasında Hata Alındı", $"{ex.Message}");
                 return BadRequest(ErrorTextBase + ex.Message);
+            }
+        }
+
+
+        [HttpPost("destroy-item")]
+        public async Task<IActionResult> DestroyItem(ProductOfOrderModel model)
+        {
+            try
+            {
+                string query = $"Get_MSGEksikUrun '{model.ShelfNo}','','{model.Barcode}','{model.ItemCode}','{model.ColorCode}','{model.ItemDim1Code}','{model.Quantity}','','','',''";
+
+                DestroyItem_Response? response = _context.DestroyItem_Response?.FromSqlRaw(query).ToList().First();
+                if (response != null)
+                {
+                    if (Convert.ToBoolean(response.State) == true)
+                    {
+                        return Ok(true);
+                    }
+                    else
+                    {
+                        return Ok(false);
+                    }
+                }
+                else
+                {
+                    return Ok(false);
+                }
+
+
+
+            }
+            catch (Exception ex)
+            {
+
+                return Ok(false);
+            }
+        }
+        [HttpGet("delete-missing-item/{orderNumber}/{barcode}")]
+        public async Task<IActionResult> DestroyItem(string orderNumber , string barcode)
+        {
+            try
+            {
+                string query = $"Delete_MissingProductFromOrder '{orderNumber}','{barcode}'";
+
+                int affectedRow = await _context.Database.ExecuteSqlRawAsync(query);
+                Console.WriteLine(affectedRow);
+                if (affectedRow > 0 || affectedRow == -1)
+                {
+
+                    return Ok(true);
+
+                }
+                else
+                {
+                    return Ok(false);
+                }
+
+
+
+            }
+            catch (Exception ex)
+            {
+
+                return Ok(false);
             }
         }
 
@@ -967,13 +1115,13 @@ namespace GoogleAPI.API.Controllers
             {
                 List<TransferModel> collectedProduct = await _ts.GetProductOfTrasfer(orderNumber);
 
-                return Ok(collectedProduct);    
+                return Ok(collectedProduct);
             }
             catch (Exception ex)
             {
 
                 string methodName = await _gs.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
-                
+
                 await _ls.LogOrderWarn($"{methodName} Sırasında Hata Alındı", $"{ex.Message}");
                 return BadRequest(ErrorTextBase + ex.Message);
 
@@ -993,7 +1141,7 @@ namespace GoogleAPI.API.Controllers
             catch (Exception ex)
             {
                 string methodName = await _gs.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
-                
+
                 await _ls.LogOrderWarn($"{methodName} Sırasında Hata Alındı", $"{ex.Message}");
                 return BadRequest(ErrorTextBase + ex.Message);
             }
@@ -1010,7 +1158,7 @@ namespace GoogleAPI.API.Controllers
             catch (Exception ex)
             {
                 string methodName = await _gs.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
-                
+
                 await _ls.LogOrderWarn($"{methodName} Sırasında Hata Alındı", $"{ex.Message}");
                 return BadRequest(ErrorTextBase + ex.Message);
             }
@@ -1028,7 +1176,7 @@ namespace GoogleAPI.API.Controllers
             catch (Exception ex)
             {
                 string methodName = await _gs.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
-                
+
                 await _ls.LogOrderWarn($"{methodName} Sırasında Hata Alındı", $"{ex.Message}");
                 return BadRequest(ErrorTextBase + ex.Message);
             }
@@ -1038,7 +1186,7 @@ namespace GoogleAPI.API.Controllers
         public async Task<IActionResult> DeleteProductFromFastTransfer(DeleteProductOfCount deleteModel)
         {
             string methodName = await _gs.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
-            
+
             try
             {
                 // Veritabanında silme işlemi yapmadan önce gerekli kontrolü yapabilirsiniz.
@@ -1063,12 +1211,12 @@ namespace GoogleAPI.API.Controllers
             }
         }
 
-        [HttpGet("InventoryItems")]
-        public async Task<IActionResult> GetInventoryItem( )
+        [HttpGet("InventoryItems/{type}")]
+        public async Task<IActionResult> GetInventoryItem(string type)
         {
             try
             {
-                List<InventoryItemModel> list = await _ts.GetInventoryItem();
+                List<InventoryItemModel> list = await _ts.GetInventoryItem(type);
 
                 if (list.Count == 0)
                 {
@@ -1091,7 +1239,7 @@ namespace GoogleAPI.API.Controllers
         public async Task<IActionResult> GetInventoryFromOrderNumber(String OrderNo)
         {
             string methodName = await _gs.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
-            
+
             try
             {
                 List<CountConfirmData> list = await _ts.GetInventoryFromOrderNumber(OrderNo);
@@ -1113,7 +1261,7 @@ namespace GoogleAPI.API.Controllers
         public async Task<IActionResult> GetAvailableShelves( )
         {
             string methodName = await _gs.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
-            
+
             try
             {
                 List<AvailableShelf> list = await _ts.GetAvailableShelves();
@@ -1131,15 +1279,102 @@ namespace GoogleAPI.API.Controllers
             }
         }
 
+        [HttpGet("get-invoices-of-customer/{orderNumber}")]
+        public async Task<IActionResult> GetInvoicesOfCustomer( string orderNumber)
+        {
+            string methodName = await _gs.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
+
+            try
+            {
+                List<InvoiceOfCustomer_VM> list = _context.InvoiceOfCustomer_VM.FromSqlRaw($"exec MSG_GetInboxEInvoice '{orderNumber}'").ToList();
+
+                return Ok(list);
+
+
+            }
+            catch (Exception ex)
+            {
+
+
+                await _ls.LogOrderError($"{HttpContext.Request.Path}", $"{methodName} Sırasında Hata Alındı", $"{ex.Message}");
+                return BadRequest(ErrorTextBase + ex.Message);
+            }
+        }
+
         #endregion -----------------------------------------------------------------------
 
-        #region DIĞER-------------------------------------------------------------------
+        #region DIĞER -------------------------------------------------------------------
+        [HttpPost("Qr")]
+        public async Task<IActionResult> PrintQr2(QrRequest model)
+        {
+            if (string.IsNullOrEmpty(model.ImageCode))
+            {
+                return BadRequest();
+            }
+
+            try
+            {
+                for (int i = 1; i <= model.PrintCount; i++)
+                {
+                    byte[] imageBytes = Convert.FromBase64String(model.ImageCode);
+
+
+
+                    using (MemoryStream stream = new MemoryStream(imageBytes))
+                    {
+                        // MemoryStream'den Bitmap oluştur
+                        Bitmap image = new Bitmap(stream);
+
+                        // Resmi 10 cm genişliğindeki bir kağıda sığdırmak için gerekli ölçüleri hesaplayın
+                        int targetWidth = (int)(10 * 96 / 2.54); // 10 cm'yi piksel cinsinden hesaplayın (1 inç = 96 piksel)
+                        int targetHeight = (int)((float)image.Height / image.Width * targetWidth);
+
+                        // Resmi yeni boyuta dönüştürün
+                        Bitmap resizedImage = new Bitmap(image, targetWidth, targetHeight);
+
+                        System.Drawing.Printing.PrintDocument printDocument = new System.Drawing.Printing.PrintDocument();
+                        printDocument.PrinterSettings.PrinterName = "SEWOO LK-P4XX Label"; // Yazıcı adını buraya ekleyin
+
+                        // Dikey olarak yazdırmak için kağıdı döndürün
+                        PaperSize customPaperSize = new PaperSize("Custom Label Size", targetWidth, targetHeight);
+                        printDocument.DefaultPageSettings.PaperSize = customPaperSize;
+                        printDocument.PrintPage += (s, args) =>
+                        {
+                            // Resmi sayfanın ortasına yerleştirin
+                            int centerX = (args.PageBounds.Width - resizedImage.Width) / 2;
+                            int centerY = (args.PageBounds.Height - resizedImage.Height) / 2;
+
+                            // Resmi merkezlenmiş konumda çiz
+                            args.Graphics.DrawImage(resizedImage, centerX, centerY);
+                        };
+                        printDocument.PrintController = new System.Drawing.Printing.StandardPrintController();
+
+
+                        printDocument.Print();
+
+
+
+
+                    }
+
+                }
+                // Base64 veriyi byte dizisine çevir
+
+                return Ok(true);
+            }
+            catch (Exception ex)
+            {
+                // Hata durumunda BadRequest döndür
+                return BadRequest(ex.Message);
+            }
+        }
+
 
         [HttpPost("TryPrintPicture")]
         public async Task<IActionResult> TryPrintPicture([FromBody] PrinterInvoiceRequestModel model)
         {
             string methodName = await _gs.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
-            
+
             try
             {
                 // Download the image from the provided URL
@@ -1158,6 +1393,8 @@ namespace GoogleAPI.API.Controllers
                     {
                         byte[] imageData = await webClient.DownloadDataTaskAsync(new Uri("https://www.destekalani.com/images/desteklogo.png"));
 
+
+
                         // Create a MemoryStream to hold the logo image data
                         using (var logoStream = new System.IO.MemoryStream(imageData))
                         {
@@ -1168,7 +1405,8 @@ namespace GoogleAPI.API.Controllers
                                 var printDocument = new PrintDocument();
                                 printDocument.PrinterSettings.PrinterName = model.PrinterName;
 
-                                printDocument.PrintPage += (s, e) => {
+                                printDocument.PrintPage += (s, e) =>
+                                {
                                     // Print the logo image on the print page
                                     e.Graphics.DrawImage(logoImage, e.MarginBounds.Left, e.MarginBounds.Top, 100, 100);
 
@@ -1217,6 +1455,19 @@ namespace GoogleAPI.API.Controllers
         }
 
         #endregion -----------------------------------------------------------------------
+
+        #region SATIŞ
+
+        [HttpPost("get-customers")]
+  
+        public async Task<IActionResult> GetCustomers( )
+        {
+
+
+            return Ok();
+        }
+
+        #endregion
 
     }
 }

@@ -10,7 +10,10 @@ namespace GoogleAPI.Persistance
         public GooleAPIDbContext CreateDbContext(string[] args)
         {
             DbContextOptionsBuilder<GooleAPIDbContext> dbContextBuilder = new();
-            dbContextBuilder.UseSqlServer("Data Source=192.168.2.36;Initial Catalog=BDD2017;User ID=sa;Password=8969;TrustServerCertificate=True;");
+            var sqlCon1 = "Data Source=192.168.2.36;Initial Catalog=BDD2017;User ID=sa;Password=8969;TrustServerCertificate=True;";
+            var sqlCon2 = "Data Source=192.168.2.38;Initial Catalog=MISIGO;User ID=sa;Password=1524;TrustServerCertificate=True;";
+
+            dbContextBuilder.UseSqlServer(sqlCon2);
             return new GooleAPIDbContext(dbContextBuilder.Options);
         }
     }

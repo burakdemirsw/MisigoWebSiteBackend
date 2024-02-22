@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace GoogleAPI.Domain.Models.NEBIM.Product
+﻿namespace GoogleAPI.Domain.Models.NEBIM.Product
 {
     public class CollectedProduct
     {
@@ -13,6 +7,8 @@ namespace GoogleAPI.Domain.Models.NEBIM.Product
         public string? Barcode { get; set; }
         public int? Quantity { get; set; }
         public string? ItemCode { get; set; }
+        public string? BatchCode { get; set; }
+        public string? LineId { get; set; }
     }
 
     public class CountedProduct
@@ -23,7 +19,9 @@ namespace GoogleAPI.Domain.Models.NEBIM.Product
         public int? Quantity { get; set; }
         public string? BatchCode { get; set; }
         public string? ItemCode { get; set; }
-    
+
+
+
 
 
     }
@@ -44,9 +42,11 @@ namespace GoogleAPI.Domain.Models.NEBIM.Product
     {
         public string? ItemCode { get; set; }
         public string? ShelfNo { get; set; }
-        public  int? Quantity { get; set; }
+        public int? Quantity { get; set; }
         public string? TargetShelf { get; set; }
         public int? TransferQuantity { get; set; }
+        public string? Barcode { get; set; }
+        public int DrawerCount { get; set; }
     }
 
 

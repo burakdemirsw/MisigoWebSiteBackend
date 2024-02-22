@@ -1,16 +1,13 @@
-﻿using FluentNHibernate.Conventions.AcceptanceCriteria;
-using GoogleAPI.Domain.Models.Filter;
+﻿using GoogleAPI.Domain.Models.Filter;
 using GoogleAPI.Domain.Models.NEBIM.Invoice;
 using GoogleAPI.Domain.Models.NEBIM.Order;
 using GoogleAPI.Domain.Models.NEBIM.Product;
-using GoogleAPI.Persistance.Concretes;
 using GoogleAPI.Persistance.Contexts;
 using GooleAPI.Application.Abstractions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using NHibernate.Hql.Ast.ANTLR.Tree;
 using System.Reflection;
 
 namespace GoogleAPI.Persistance.Concreates
@@ -36,8 +33,16 @@ namespace GoogleAPI.Persistance.Concreates
             List<OrderDataModel> orderDataList = new List<OrderDataModel>();
             try
             {
-
-                string query = $"exec {procedureName} '{orderNumber}'";
+                string query = null;
+                if (procedureName.Contains("WS3"))
+                {
+                     query = $"exec {procedureName} '{orderNumber}' ,'{requestModel.TaxedOrTaxtFree}'";
+                }
+                else
+                {
+                     query = $"exec {procedureName} '{orderNumber}'";
+                }
+     
 
                 OrderDataList = await _context.ztOrderData
                   .FromSqlRaw(query)
@@ -175,19 +180,22 @@ namespace GoogleAPI.Persistance.Concreates
                         {
                             if (requestModel.InvoiceType == true)
                             {
-                                List<OrderLineBP> lineList = new List<OrderLineBP>();
+                                List<OrderLineBP3> lineList = new List<OrderLineBP3>();
                                 foreach (OrderLine line in orderData.Lines)
                                 {
-                                    OrderLineBP orderLineBP = new OrderLineBP
+                                    OrderLineBP3 orderLineBP = new OrderLineBP3
                                     {
                                         UsedBarcode = line.UsedBarcode,
+                                        ItemCode = line.ItemCode,
                                         BatchCode = line.BatchCode,
                                         ITAttributes = line.ITAttributes,
                                         LDisRate1 = line.LDisRate1,
                                         VatRate = line.VatRate,
                                         Price = line.Price,
                                         Amount = line.Amount,
-                                        Qty1 = line.Qty1
+                                        Qty1 = line.Qty1,
+                                        DocCurrencyCode = line.DocCurrencyCode,
+                                        CurrencyCode = line.CurrencyCode
                                     };
 
                                     lineList.Add(orderLineBP);
@@ -220,23 +228,26 @@ namespace GoogleAPI.Persistance.Concreates
                             } //ALIŞ İADE FATURASI 
                             else
                             {
-                                //List<OrderLineBP> lineList = new List<OrderLineBP>();
-                                //foreach (OrderLine line in orderData.Lines)
-                                //{
-                                //    OrderLineBP orderLineBP = new OrderLineBP
-                                //    {
-                                //        UsedBarcode = line.UsedBarcode,
-                                //        BatchCode = line.BatchCode,
-                                //        ITAttributes = line.ITAttributes,
-                                //        LDisRate1 = line.LDisRate1,
-                                //        VatRate = line.VatRate,
-                                //        Price = line.Price,
-                                //        Amount = line.Amount,
-                                //        Qty1 = line.Qty1
-                                //    };
+                                List<OrderLineBP3> lineList = new List<OrderLineBP3>();
+                                foreach (OrderLine line in orderData.Lines)
+                                {
+                                    OrderLineBP3 orderLineBP = new OrderLineBP3
+                                    {
+                                        UsedBarcode = line.UsedBarcode,
+                                        ItemCode = line.ItemCode,
+                                        BatchCode = line.BatchCode,
+                                        ITAttributes = line.ITAttributes,
+                                        LDisRate1 = line.LDisRate1,
+                                        VatRate = line.VatRate,
+                                        Price = line.Price,
+                                        Amount = line.Amount,
+                                        Qty1 = line.Qty1,
+                                        DocCurrencyCode = line.DocCurrencyCode,
+                                        CurrencyCode = line.CurrencyCode
+                                    };
 
-                                //    lineList.Add(orderLineBP);
-                                //}
+                                    lineList.Add(orderLineBP);
+                                }
                                 var jsonModel2 = new
                                 {
                                     ModelType = 19,
@@ -257,7 +268,7 @@ namespace GoogleAPI.Persistance.Concreates
                                     ShippingPostalAddressID = orderData.ShippingPostalAddressID,
                                     OfficeCode = orderData.OfficeCode,
                                     WareHouseCode = orderData.WareHouseCode,
-                                    Lines = orderData.Lines,
+                                    Lines = lineList,
                                     IsCompleted = true
                                 };
                                 jsonModel = jsonModel2;
@@ -268,32 +279,35 @@ namespace GoogleAPI.Persistance.Concreates
                         {
                             if (requestModel.InvoiceType == false)
                             {
-                                //List<OrderLineBP> lineList = new List<OrderLineBP>();
-                                //foreach (OrderLine line in orderData.Lines)
-                                //{
-                                //    OrderLineBP orderLineBP = new OrderLineBP
-                                //    {
-                                //        UsedBarcode = line.UsedBarcode,
-                                //        BatchCode = line.BatchCode,
-                                //        ITAttributes = line.ITAttributes,
-                                //        LDisRate1 = line.LDisRate1,
-                                //        VatRate = line.VatRate,
-                                //        Price = line.Price,
-                                //        Amount = line.Amount,
-                                //        Qty1 = line.Qty1
-                                //    };
+                                List<OrderLineBP3> lineList = new List<OrderLineBP3>();
+                                foreach (OrderLine line in orderData.Lines)
+                                {
+                                    OrderLineBP3 orderLineBP = new OrderLineBP3
+                                    {
+                                        UsedBarcode = line.UsedBarcode,
+                                        ItemCode = line.ItemCode,
+                                        BatchCode = line.BatchCode,
+                                        ITAttributes = line.ITAttributes,
+                                        LDisRate1 = line.LDisRate1,
+                                        VatRate = line.VatRate,
+                                        Price = line.Price,
+                                        Amount = line.Amount,
+                                        Qty1 = line.Qty1,
+                                        DocCurrencyCode = line.DocCurrencyCode,
+                                        CurrencyCode = line.CurrencyCode
+                                    };
 
-                                //    lineList.Add(orderLineBP);
-                                //}
+                                    lineList.Add(orderLineBP);
+                                }
                                 var jsonModel3 = new
                                 {
                                     ModelType = 19,
                                     VendorCode = orderData.CurrAccCode,
-                                    EInvoicenumber = orderData.EInvoicenumber,
+                                    EInvoicenumber = requestModel.EInvoiceNumber ==null ?  orderData.EInvoicenumber : requestModel.EInvoiceNumber,
 
                                     PosTerminalID = 1,
                                     TaxTypeCode = orderData.TaxTypeCode,
-                                    InvoiceDate = DateTime.Now.ToString("yyyy-MM-dd"),
+                                    InvoiceDate =requestModel.InvoiceDate == null ?  DateTime.Now.ToString("yyyy-MM-dd") : requestModel.InvoiceDate?.ToString("yyyy-MM-dd"),
                                     Description = orderData.InternalDescription, //siparisNo
                                     InternalDescription = orderData.InternalDescription, //siparisNo
                                     IsOrderBase = false,
@@ -306,7 +320,7 @@ namespace GoogleAPI.Persistance.Concreates
                                     OfficeCode = orderData.OfficeCode,
                                     WareHouseCode = orderData.WareHouseCode,
 
-                                    Lines = orderData.Lines,
+                                    Lines = lineList,
 
                                     IsCompleted = true
                                 };
@@ -553,7 +567,7 @@ namespace GoogleAPI.Persistance.Concreates
 
                         var json = JsonConvert.SerializeObject(jsonModel);
 
-                        var response = await _gs.PostNebimAsync(json, "Fatura");
+                        var response = await _gs.PostNebimAsync(json, "FATURA");
 
                         JObject jsonResponse = JObject.Parse(response);
 
@@ -649,8 +663,8 @@ namespace GoogleAPI.Persistance.Concreates
             }
             catch (Exception ex)
             {
-                await _ls.LogInvoiceError("", $"Faturalaştırma Aşamasında Hata Alındı", $"{ex.Message}");
-                throw new Exception($"Faturalaştırma Aşamasında Hata Alındı : {ex.Message}");
+                await _ls.LogInvoiceError("", $"Faturalaştırma Aşamasında Hata Alındı", $"{ex.Message}"+  $"{ex.StackTrace}");
+                throw new Exception($"Faturalaştırma Aşamasında Hata Alındı : {ex.Message}"+  $"{ex.StackTrace}");
 
             }
         }
@@ -789,7 +803,7 @@ namespace GoogleAPI.Persistance.Concreates
                 case 4: // satış sipariş faturası
                     if (model.OrderNo.Contains("WS") && !model.InvoiceType)
                     {
-                        result2 = await AutoInvoice(model.OrderNo, "usp_GetOrderForInvoiceToplu_WS", model, httpContext);
+                        result2 = await AutoInvoice(model.OrderNo, "usp_GetOrderForInvoiceToplu_WS3", model, httpContext);
                     }
                     else if (model.OrderNo.Contains("R") && !model.InvoiceType)
                     {
@@ -807,7 +821,7 @@ namespace GoogleAPI.Persistance.Concreates
             }
 
             if (result2)
-            {
+            { 
                 await _ls.LogInvoiceSuccess($"{methodName} İşlemi Başarılı", $"İşlem Başarılı");
                 return true;
                 // Continue with additional processing if needed
@@ -845,18 +859,11 @@ namespace GoogleAPI.Persistance.Concreates
 
 
             List<CreatePurchaseInvoice> collectedProduct = await _context.CreatePurchaseInvoices.FromSqlRaw($"exec [Get_ProductOfInvoice] '{invoiceId}'").ToListAsync();
-            if (collectedProduct.Count>0)
-            {
-                await _ls.LogInvoiceSuccess($"{methodName} İşlemi Başarılı", $"İşlem Başarılı");
-                return collectedProduct;
-            }
-            else{
-                throw new Exception("Veri Null Geldi");
-            }
+            return collectedProduct;
 
         }
-       
-     
+
+
     }
 
 }

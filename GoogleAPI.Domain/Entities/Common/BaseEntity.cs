@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace GoogleAPI.Domain.Entities.Common
+﻿namespace GoogleAPI.Domain.Entities.Common
 {
     public class BaseEntity
     {

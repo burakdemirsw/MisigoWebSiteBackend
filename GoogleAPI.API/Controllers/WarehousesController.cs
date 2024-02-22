@@ -1,23 +1,14 @@
-﻿using GoogleAPI.Domain.Models;
-using GoogleAPI.Domain.Models.Filter;
-using GoogleAPI.Domain.Models.NEBIM;
-using GoogleAPI.Domain.Models.NEBIM.Invoice;
+﻿using GoogleAPI.Domain.Models.Filter;
 using GoogleAPI.Domain.Models.NEBIM.Order;
 using GoogleAPI.Domain.Models.NEBIM.Product;
-using GoogleAPI.Domain.Models.NEBIM.Request;
 using GoogleAPI.Domain.Models.NEBIM.Warehouse;
+using GoogleAPI.Persistance.Concreates;
 using GoogleAPI.Persistance.Contexts;
 using GooleAPI.Application.Abstractions;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using System.Drawing;
-using System.Net;
 using System.Reflection;
-using System.Text;
-using ZXing;
 
 namespace GoogleAPI.API.Controllers
 {
@@ -28,21 +19,23 @@ namespace GoogleAPI.API.Controllers
         private readonly GooleAPIDbContext _context;
         private readonly string ErrorTextBase = "İstek Sırasında Hata Oluştu: ";
         private readonly IGeneralService _gs;
-        private readonly string IpAdresi = "http://192.168.2.36:7676";
-        private IOrderService _orderService;
+        private readonly IProductService _ps;
+        private readonly ITransferService _ts;
+        private readonly ICountService _cs;
         private ILogService _ls;
 
-        // private IOrderService _orderService;
         public WarehousesController(
           GooleAPIDbContext context,
 
-          IOrderService orderService, ILogService ls,IGeneralService gs
+           ILogService ls, IGeneralService gs,IProductService ps, ITransferService ts, ICountService cs
         )
         {
-            _orderService = orderService;
             _ls = ls;
             _context = context;
             _gs = gs;
+            _ps = ps;
+            _ts = ts;
+            _cs = cs;   
         }
 
         //Ürün Controller'ına taşınması lazım
@@ -52,22 +45,20 @@ namespace GoogleAPI.API.Controllers
 
             try
             {
-                List<BarcodeModel>? barcodeModels = await _context.BarcodeModels?.FromSqlRaw($"usp_QRKontrolSorgula '{qrCode}'").ToListAsync();
-                //BarcodeModel barcodeModel = barcodeModels.FirstOrDefault();
+                List<BarcodeModel>? barcodeModels = await _ps.GetBarcodeDetail(qrCode);
+               
                 return Ok(barcodeModels);
             }
             catch (Exception ex)
             {
 
                 string methodName = await _gs.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
-                
+
                 await _ls.LogWarehouseWarn($"{methodName} Sırasında Hata Alındı", $"{ex.Message}");
                 return BadRequest(ErrorTextBase + ex.Message);
             }
         }
         //Nebim Servislerine taşınması lazım
-
-
 
         [HttpGet("GetOfficeModel")] //ofiseleri çeker
         public async Task<IActionResult> GetOfficeModel( )
@@ -82,86 +73,21 @@ namespace GoogleAPI.API.Controllers
             catch (Exception ex)
             {
                 string methodName = await _gs.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
-                
+
                 await _ls.LogWarehouseWarn($"{methodName} Sırasında Hata Alındı", $"{ex.Message}");
                 return BadRequest(ErrorTextBase + ex.Message);
             }
         }
-        //TransferProducts/{orderNo}
-        [HttpGet("TransferProducts/{orderNo}")]
-        public async Task<IActionResult> TransferProducts(string orderNo)
-        {
-            string methodName = await _gs.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
-            
-            try
-            {
 
-            
-
-                TransferData? transferData = await _context.TransferData.FromSqlRaw($"exec usp_GetOrderForInvoiceToplu_WT '{orderNo}'").FirstOrDefaultAsync();
-                if (transferData != null)
-                {
-                    List<TransferItem>? transferItems = JsonConvert.DeserializeObject<List<TransferItem>>(transferData.Lines);
-                    TransferDataModel transferDataModel = new TransferDataModel
-                    {
-                        ModelType = transferData.ModelType,
-                        InnerNumber = transferData.InnerNumber,
-                        OfficeCode = transferData.OfficeCode,
-                        OperationDate = transferData.OperationDate,
-                        StoreCode = transferData.StoreCode,
-                        ToOfficeCode = transferData.ToOfficeCode,
-                        ToStoreCode = transferData.ToStoreCode,
-                        ToWarehouseCode = transferData.ToWarehouseCode,
-                        WarehouseCode = transferData.WarehouseCode,
-                        CompanyCode = transferData.CompanyCode,
-                        InnerProcessType = transferData.InnerProcessType,
-                        IsCompleted = Convert.ToBoolean(transferData.IsCompleted),
-                        IsInnerOrderBase = Convert.ToBoolean(transferData.IsInnerOrderBase),
-                        IsLocked = Convert.ToBoolean(transferData.IsLocked),
-                        IsPostingJournal = Convert.ToBoolean(transferData.IsPostingJournal),
-                        IsPrinted = Convert.ToBoolean(transferData.IsPrinted),
-                        IsReturn = Convert.ToBoolean(transferData.IsReturn),
-                        IsTransferApproved = Convert.ToBoolean(transferData.IsTransferApproved),
-                        Lines = transferItems
-                    };
-
-                    var json = JsonConvert.SerializeObject(transferDataModel);
-
-                    var response = _gs.PostNebimAsync(json, "TRANSFER");
-
-
-                    if (response != null)
-                    {
-                        await _ls.LogWarehouseSuccess($"{methodName} Başarılı", HttpContext.Request.Path);
-                        return Ok(true);
-
-                    }
-                    else
-                    {
-                        return BadRequest(response);
-                    }
-                }
-                else
-                {
-                    await _ls.LogWarehouseWarn($"{methodName} Sırasında Hata Alındı", $"");
-                    return BadRequest();
-                }
-            }
-            catch (Exception ex)
-            {
-                await _ls.LogWarehouseWarn($"{methodName} Sırasında Hata Alındı", $"{ex.Message}");
-                return BadRequest(ErrorTextBase + ex.Message);
-            }
-        }
 
         [HttpGet("GetWarehouseModel/{officeCode}")] //verilen ofis koduna göre depoları çeker
-        public async Task<IActionResult> WarehouseModel(string officeCode)
+        public async Task<IActionResult> GetWarehouseModel(string officeCode)
         {
-            
+
 
             try
             {
-                List<WarehouseOfficeModel> warehouseModels = await _context.ztWarehouseModel.FromSqlRaw($"exec [usp_MTOfisDepo] '{officeCode}'").ToListAsync();
+                List<WarehouseOfficeModel> warehouseModels = await _ts.GetWarehouseModel(officeCode);
                 //BarcodeModel barcodeModel = barcodeModels.FirstOrDefault();
                 return Ok(warehouseModels);
             }
@@ -179,7 +105,7 @@ namespace GoogleAPI.API.Controllers
         {
             try
             {
-                List<WarehosueOperationListModel> saleOrderModel = await _context.ztWarehosueOperationListModel.FromSqlRaw("select TOP 100* from ztTransferOnayla where IsCompleted = 0 and WarehouseCode in ('MD','UD') and ToWarehouseCode in ('MD','UD') Order by InnerNumber desc").ToListAsync();
+                List<WarehosueOperationListModel> saleOrderModel = await _ts.GetWarehosueOperationList();
 
                 return Ok(saleOrderModel);
             }
@@ -187,7 +113,28 @@ namespace GoogleAPI.API.Controllers
             {
 
                 string methodName = await _gs.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
-                
+
+
+                await _ls.LogWarehouseWarn($"{methodName} Sırasında Hata Alındı", $"{ex.Message}");
+                return BadRequest(ErrorTextBase + ex.Message);
+            }
+        }
+
+
+        [HttpGet("GetWarehosueOperationListByInnerNumber/{innerNumber}")]
+        public async Task<ActionResult<WarehosueOperationListModel>> GetWarehosueOperationListByInnerNumber( string innerNumber)
+        {
+            try
+            {
+               WarehosueOperationListModel saleOrderModel = await _ts.GetWarehosueOperationListByInnerNumber(innerNumber);
+
+                return Ok(saleOrderModel);
+            }
+            catch (Exception ex)
+            {
+
+                string methodName = await _gs.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
+
 
                 await _ls.LogWarehouseWarn($"{methodName} Sırasında Hata Alındı", $"{ex.Message}");
                 return BadRequest(ErrorTextBase + ex.Message);
@@ -200,14 +147,15 @@ namespace GoogleAPI.API.Controllers
             string methodName = await _gs.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
             try
             {
-                var affectedRow = _context.Database.ExecuteSqlRaw($"delete from ZTMSRAFSAYIM3 where OrderNumber = '{id}' ");
+                var affectedRow = await _cs.DeleteCountById(id);
                 if (affectedRow > 0)
                 {
-                    await _ls.LogWarehouseSuccess( $"{methodName} Başarılı", HttpContext.Request.Path); return Ok(true);
+                    await _ls.LogWarehouseSuccess($"{methodName} Başarılı", HttpContext.Request.Path);
+                    return Ok(true);
                 }
                 else
                 {
-                    
+
 
                     await _ls.LogWarehouseWarn($"{methodName} Sırasında Hata Alındı", $"");
                     return BadRequest();
@@ -215,7 +163,7 @@ namespace GoogleAPI.API.Controllers
             }
             catch (Exception ex)
             {
-                
+
 
                 await _ls.LogWarehouseWarn($"{methodName} Sırasında Hata Alındı", $"{ex.Message}");
                 return BadRequest(ErrorTextBase + ex.Message);
@@ -226,17 +174,18 @@ namespace GoogleAPI.API.Controllers
         public async Task<IActionResult> DeleteWarehouseTransferByOrderNumber(string id)
         {
             string methodName = await _gs.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
-            
+
             try
             {
-                var affectedRow = _context.Database.ExecuteSqlRaw($"delete from ZTMSRAFSAYIM6 where OrderNumber = '{id}' ");
+                var affectedRow = await _ts.DeleteWarehouseTransferByOrderNumber(id);
                 if (affectedRow > 0)
                 {
-                    await _ls.LogWarehouseSuccess( $"{methodName} Başarılı", HttpContext.Request.Path); return Ok(true);
+                    await _ls.LogWarehouseSuccess($"{methodName} Başarılı", HttpContext.Request.Path);
+                    return Ok(true);
                 }
                 else
                 {
-                  
+
 
                     await _ls.LogWarehouseWarn($"{methodName} Sırasında Hata Alındı", $"");
                     return BadRequest();
@@ -244,7 +193,7 @@ namespace GoogleAPI.API.Controllers
             }
             catch (Exception ex)
             {
-           
+
                 await _ls.LogWarehouseWarn($"{methodName} Sırasında Hata Alındı", $"{ex.Message}");
                 return BadRequest(ErrorTextBase + ex.Message);
             }
@@ -254,50 +203,11 @@ namespace GoogleAPI.API.Controllers
         public async Task<IActionResult> GetWarehosueTransferList(WarehouseTransferListFilterModel model)
         {
             string methodName = await _gs.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
-            
+
             try
             {
-                // Initialize the base query
-                string query = "SELECT TOP 100 MAX(ItemDate) as OperationDate, SUM(Quantity) as Quantity, OrderNumber, WarehouseCode, ToWarehouseCode FROM ZTMSRAFSAYIM6";
 
-                // Initialize filter clauses
-                List<string> filterClauses = new List<string>();
-
-                // Add filters based on model properties
-                if (!string.IsNullOrEmpty(model.OrderNumber))
-                {
-                    filterClauses.Add($"OrderNumber = '{model.OrderNumber}'");
-                }
-                if (!string.IsNullOrEmpty(model.WarehouseCode))
-                {
-                    filterClauses.Add($"WarehouseCode = '{model.WarehouseCode}'");
-                }
-                if (!string.IsNullOrEmpty(model.ToWareHouseCode))
-                {
-                    filterClauses.Add($"TOWareHouseCode = '{model.ToWareHouseCode}'");
-                }
-                if (model.OperationStartDate != null)
-                {
-                    filterClauses.Add($"ItemDate >= '{model.OperationStartDate:yyyy-MM-dd}'");
-                }
-                if (model.OperationEndDate != null)
-                {
-                    filterClauses.Add($"ItemDate <= '{model.OperationEndDate:yyyy-MM-dd}'");
-                }
-
-                // Combine filter clauses
-                if (filterClauses.Count > 0)
-                {
-                    string filterConditions = string.Join(" AND ", filterClauses);
-                    query += " WHERE " + filterConditions;
-                }
-
-                // Complete the query
-                query += " GROUP BY OrderNumber, WarehouseCode, TOWareHouseCode";
-                query += " ORDER BY OrderNumber DESC;";
-
-                // Execute the query and retrieve results
-                List<WarehosueTransferListModel> warehouseTransferModel = await _context.WarehosueTransferListModel.FromSqlRaw(query).ToListAsync();
+                List<WarehosueTransferListModel> warehouseTransferModel = await _ts.GetWarehosueTransferList(model);
 
                 return Ok(warehouseTransferModel);
             }
@@ -312,48 +222,18 @@ namespace GoogleAPI.API.Controllers
         [HttpPost("GetWarehosueOperationListByFilter")]
         public async Task<IActionResult> GetWarehosueOperationListByFilter(WarehouseOperationListFilterModel model)
         {
-            string methodName = await _gs.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
-            
+
             try
             {
-                // Initialize the base query
-                string query = "SELECT * FROM ztTransferOnayla WHERE IsCompleted = 1 or  IsCompleted = 0";
 
-                // Initialize filter clauses
-                List<string> filterClauses = new List<string>();
-
-                // Add filters based on model properties
-                if (!string.IsNullOrEmpty(model.InnerNumber))
-                {
-                    filterClauses.Add($"InnerNumber = '{model.InnerNumber}'");
-                }
-                if (model.StartDate != null)
-                {
-                    filterClauses.Add($"OperationDate >= '{model.StartDate:yyyy-MM-dd}'");
-                }
-                if (model.EndDate != null)
-                {
-                    filterClauses.Add($"OperationDate <= '{model.EndDate:yyyy-MM-dd}'");
-                }
-
-                // Combine filter clauses
-                if (filterClauses.Count > 0)
-                {
-                    string filterConditions = string.Join(" AND ", filterClauses);
-                    query += " AND " + filterConditions;
-                }
-
-                // Complete the query
-                query += " ORDER BY InnerNumber DESC;";
-
-                // Execute the query and retrieve results
-                List<WarehosueOperationListModel> saleOrderModel = await _context.ztWarehosueOperationListModel.FromSqlRaw(query).ToListAsync();
+                List<WarehosueOperationListModel> saleOrderModel = await _ts.GetWarehosueOperationListByFilter(model);
 
                 return Ok(saleOrderModel);
             }
             catch (Exception ex)
             {
-  
+
+                string methodName = await _gs.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
                 await _ls.LogWarehouseWarn($"{methodName} Sırasında Hata Alındı", $"{ex.Message}");
                 return BadRequest(ErrorTextBase + ex.Message);
             }
@@ -364,7 +244,7 @@ namespace GoogleAPI.API.Controllers
         {
             try
             {
-                List<ProductOfOrderModel> saleOrderModel = await _context.ztProductOfOrderModel.FromSqlRaw($"exec   [Usp_GETTransferOnayla]'{innerNumber}'").ToListAsync();
+                List<ProductOfOrderModel> saleOrderModel = await _ts.GetWarehosueOperationDetail(innerNumber);
 
                 return Ok(saleOrderModel);
             }
@@ -372,29 +252,37 @@ namespace GoogleAPI.API.Controllers
             {
 
                 string methodName = await _gs.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
-                
+
                 await _ls.LogWarehouseWarn($"{methodName} Sırasında Hata Alındı", $"{ex.Message}");
                 return BadRequest(ErrorTextBase + ex.Message);
             }
         }
+        //TransferProducts/{orderNo}
+        [HttpGet("TransferProducts/{orderNo}")]
+        public async Task<IActionResult> TransferProducts(string orderNo)
+        {
+            string methodName = await _gs.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
 
+            try
+            {   var response = await _ts.TransferProducts(orderNo);  
+
+                return Ok(response);    
+            }
+            catch (Exception ex)
+            {
+                await _ls.LogWarehouseWarn($"{methodName} Sırasında Hata Alındı", $"{ex.Message}");
+                return BadRequest(ErrorTextBase + ex.Message);
+            }
+        }
         [HttpPost("Transfer")] //yapılan depo işlemi işlem numarasına göre direkt transfer eder
         public async Task<ActionResult> SendNebımToTransferProduct(WarehouseOperationProductModel model)
         {
-  
+
             try
             {
-                string sql = "EXECUTE Usp_PostZtMSRAFSTOK {0}, {1}, {2}, {3}, {4}";
-                // string sql2 = $"update ztTransferOnayla set IsCompleted = 1 where InnerNumber = '{model.InnerNumber}'";
-                object[] parameters = {
-                      model.Barcode,
-                      model.BatchCode,
-                      model.ShelfNumber,
-                      model.Quantity,
-                      model.Warehouse
-                    };
+               
 
-                int number = await _context.Database.ExecuteSqlRawAsync(sql, parameters);
+                int number = await _ts.SendNebımToTransferProduct(model);
 
                 // int number2 = _context.Database.ExecuteSqlRaw(sql2);
 
@@ -403,47 +291,38 @@ namespace GoogleAPI.API.Controllers
             catch (Exception ex)
             {
                 string methodName = await _gs.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
-                
+
                 await _ls.LogWarehouseWarn($"{methodName} Sırasında Hata Alındı", $"{ex.Message}");
                 return BadRequest(ErrorTextBase + ex.Message);
             }
         }
-
         [HttpPost("ConfirmOperation")] // yapılan depo işlemlerin durumunu günceller 
         public async Task<ActionResult> ConfirmOperation(List<string> InnerNumberList)
         {
             string methodName = await _gs.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
-            
+
             try
             {
-                foreach (var item in InnerNumberList)
-                {
-                    string sql2 = $"update ztTransferOnayla set IsCompleted = 1 where InnerNumber = '{item}'";
+                var response= await _ts.ConfirmOperation(InnerNumberList);
 
-                    int number2 = _context.Database.ExecuteSqlRaw(sql2);
-                }
-
-                await _ls.LogWarehouseSuccess( $"{methodName} Başarılı", HttpContext.Request.Path); return Ok(true);
+                await _ls.LogWarehouseSuccess($"{methodName} Başarılı", HttpContext.Request.Path);
+                return Ok(response);
             }
             catch (Exception ex)
             {
-              
+
                 await _ls.LogWarehouseWarn($"{methodName} Sırasında Hata Alındı", $"{ex.Message}");
                 return BadRequest(ErrorTextBase + ex.Message);
             }
         }
-
-
-        [HttpGet("TransferRequestList")]
-        public async Task<IActionResult> GetTransferRequestListModel( )
+        [HttpGet("TransferRequestList/{type}")]
+        public async Task<IActionResult> GetTransferRequestListModel( string type )
         {
             try
-            {
+            {                
                 TransferRequestListModel model = new TransferRequestListModel();
 
-
-
-                List<TransferRequestListModel> list = await _context.TransferRequestListModels.FromSqlRaw("[dbo].[Get_MSRAFTRANSFERShelf]").ToListAsync();
+                List<TransferRequestListModel> list = await _ts.GetTransferRequestListModel(type);
 
                 if (list.Count == 0)
                 {
@@ -461,23 +340,20 @@ namespace GoogleAPI.API.Controllers
                 throw;
             }
         }
-
-
-
         [HttpGet("GetOperationWarehousue/{innerNumber}")] //verilen operasyon kodu ile Ürünleri Çeker
         public async Task<IActionResult> GetOperationWarehousue(string innerNumber)
         {
 
             try
             {
-                List<BarcodeModel> barcodeModels = await _context.BarcodeModels.FromSqlRaw($"usp_QRKontrolSorgula '{innerNumber}'").ToListAsync();
+                List<BarcodeModel> barcodeModels = await  _ts.GetOperationWarehousue(innerNumber);
                 return Ok(barcodeModels);
             }
             catch (Exception ex)
             {
 
                 string methodName = await _gs.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
-                
+
                 await _ls.LogWarehouseWarn($"{methodName} Sırasında Hata Alındı", $"{ex.Message}");
                 return BadRequest(ErrorTextBase + ex.Message);
             }

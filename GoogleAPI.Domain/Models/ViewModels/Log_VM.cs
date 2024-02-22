@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace GoogleAPI.Domain.Models.ViewModels
+﻿namespace GoogleAPI.Domain.Models.ViewModels
 {
     public class Log_VM
     {
@@ -17,7 +11,7 @@ namespace GoogleAPI.Domain.Models.ViewModels
         public string? ExceptionText { get; set; }
         public string? LogEvent { get; set; }
         public string? UserName { get; set; }
-        public DateTime? CreatedDate { get; set;}
+        public DateTime? CreatedDate { get; set; }
 
     }
 }

@@ -1,17 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace GooleAPI.Application.ViewModels
+﻿namespace GooleAPI.Application.ViewModels
 {
     public class VM_Create_Product
     {
         public string? ProductName { get; set; }
         public int? StockAmount { get; set; }
 
-        public string   ? Barcode { get; set; }
+        public string? Barcode { get; set; }
         public string? StockCode { get; set; }
         public string? Dimention { get; set; } //yeni
         public int? PurchasePrice { get; set; } //yeni

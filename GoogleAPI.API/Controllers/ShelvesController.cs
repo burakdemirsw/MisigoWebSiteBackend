@@ -1,6 +1,5 @@
 ﻿using GoogleAPI.Domain.Models.NEBIM.Shelf;
 using GoogleAPI.Persistance.Contexts;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -26,18 +25,18 @@ namespace GoogleAPI.API.Controllers
             {
                 if (id != "{id}")
                 {
-                    List<ShelfModel>? saleOrderModel =await  _context.ztShelves.FromSqlRaw($"select * from ztShelves where Id = '{id}'").ToListAsync();
+                    List<ShelfModel>? saleOrderModel = await _context.ztShelves.FromSqlRaw($"select * from ztShelves where Id = '{id}'").ToListAsync();
 
                     return Ok(saleOrderModel);
                 }
                 else
                 {
                     List<ShelfModel>? saleOrderModel = await _context.ztShelves.FromSqlRaw($"select * from ztShelves ").ToListAsync();
-                    
+
 
                     return Ok(saleOrderModel);
                 }
-                
+
             }
             catch (Exception ex)
             {
@@ -52,7 +51,7 @@ namespace GoogleAPI.API.Controllers
             {
                 if (qrCode != "{qrCode}")
                 {
-                    List<ShelfModel> saleOrderModel =await  _context.ztShelves.FromSqlRaw($"select * from ztShelves where QrString = '{qrCode}'").ToListAsync();
+                    List<ShelfModel> saleOrderModel = await _context.ztShelves.FromSqlRaw($"select * from ztShelves where QrString = '{qrCode}'").ToListAsync();
 
                     return Ok(saleOrderModel);
                 }

@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace GoogleAPI.Domain.Models.NEBIM.Order
+﻿namespace GoogleAPI.Domain.Models.NEBIM.Order
 {
     public class ProductOfOrderModel
     {
@@ -21,6 +15,7 @@ namespace GoogleAPI.Domain.Models.NEBIM.Order
         public int CountedQty { get; set; }
         public int CurrentQty { get; set; }
         public string? Description { get; set; }
+        public Guid? LineId { get; set; }
 
     }
 

@@ -1,13 +1,8 @@
-using Antlr.Runtime.Tree;
 using GoogleAPI.Domain.Models.Filter;
-using GoogleAPI.Domain.Models.NEBIM.Category;
 using GoogleAPI.Domain.Models.ViewModels;
 using GoogleAPI.Persistance.Contexts;
 using GooleAPI.Application.Abstractions;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
-using Microsoft.EntityFrameworkCore;
 
 namespace GoogleAPI.API.Controllers
 {
@@ -47,7 +42,7 @@ namespace GoogleAPI.API.Controllers
             }
         }
         [HttpGet("SetLog")]
-        public async Task<ActionResult<List<Log_VM>>> SetLog()
+        public async Task<ActionResult<List<Log_VM>>> SetLog( )
         {
             try
             {

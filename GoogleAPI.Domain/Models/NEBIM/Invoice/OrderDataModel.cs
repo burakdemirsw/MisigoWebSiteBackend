@@ -1,12 +1,4 @@
-﻿using NHibernate.Type;
-using Remotion.Linq.Clauses;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace GoogleAPI.Domain.Models.NEBIM.Invoice
+﻿namespace GoogleAPI.Domain.Models.NEBIM.Invoice
 {
     public class OrderDataModel
     {
@@ -96,7 +88,7 @@ namespace GoogleAPI.Domain.Models.NEBIM.Invoice
         public string? UsedBarcode { get; set; }
         public string? SalesPersonCode { get; set; }
         public string? BatchCode { get; set; }
-        public List<ITAttribute>? ITAttributes { get; set; } 
+        public List<ITAttribute>? ITAttributes { get; set; }
         public decimal LDisRate1 { get; set; }
         public int VatRate { get; set; }
         public decimal Price { get; set; }
@@ -111,7 +103,7 @@ namespace GoogleAPI.Domain.Models.NEBIM.Invoice
         // public Guid OrderLineID { get; set; }
         public string? UsedBarcode { get; set; }
 
-       //public string SalesPersonCode { get; set; }
+        //public string SalesPersonCode { get; set; }
         public string? BatchCode { get; set; }
 
         public List<ITAttribute>? ITAttributes { get; set; }
@@ -135,8 +127,23 @@ namespace GoogleAPI.Domain.Models.NEBIM.Invoice
         public int VatRate { get; set; }
         public decimal PriceVI { get; set; }
         public decimal AmountVI { get; set; }
-        public  string? SalesPersonCode { get; set; }
+        public string? SalesPersonCode { get; set; }
         public int Qty1 { get; set; }
+    }
+    public class OrderLineBP3
+    {
+        public string? UsedBarcode { get; set; }
+        public string? ItemCode { get; set; }
+        //public string? SalesPersonCode { get; set; }
+        public string? BatchCode { get; set; }
+        public List<ITAttribute>? ITAttributes { get; set; }
+        public decimal LDisRate1 { get; set; }
+        public int VatRate { get; set; }
+        public decimal Price { get; set; }
+        public decimal Amount { get; set; }
+        public int Qty1 { get; set; }
+        public string? DocCurrencyCode { get; set; }
+        public string? CurrencyCode { get; set; }
     }
     public class Payment
     {

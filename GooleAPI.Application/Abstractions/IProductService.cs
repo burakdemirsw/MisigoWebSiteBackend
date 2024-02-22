@@ -1,14 +1,11 @@
 ﻿using GoogleAPI.Domain.Models.NEBIM;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using GoogleAPI.Domain.Models.NEBIM.Product;
 
 namespace GooleAPI.Application.Abstractions
 {
     public interface IProductService
     {
         public Task<string> GenerateBarcode_A(List<BarcodeModel_A> barcodes);
+        Task<List<BarcodeModel>> GetBarcodeDetail(string qrCode);
     }
 }

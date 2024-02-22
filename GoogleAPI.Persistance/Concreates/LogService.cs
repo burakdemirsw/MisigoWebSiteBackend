@@ -34,7 +34,7 @@ namespace GoogleAPI.Persistance.Concreates
             log.LogEvent = exceptionText;
             log.Request = request;
             log.UserName = "ADMIN";
-      
+
 
             await _lw.AddAsync(log);
 
@@ -49,7 +49,7 @@ namespace GoogleAPI.Persistance.Concreates
             log.ExceptionText = exceptioneader;
             log.LogEvent = exceptionText;
             log.UserName = "ADMIN";
-       
+
             await _lw.AddAsync(log);
 
 
@@ -122,7 +122,7 @@ namespace GoogleAPI.Persistance.Concreates
             log.LogEvent = exceptionText;
             log.UserName = "ADMIN";
             log.Request = request;
-  
+
             await _lw.AddAsync(log);
 
 
@@ -136,7 +136,7 @@ namespace GoogleAPI.Persistance.Concreates
             log.ExceptionText = exceptioneader;
             log.LogEvent = exceptionText;
             log.UserName = "ADMIN";
-        
+
             await _lw.AddAsync(log);
 
 

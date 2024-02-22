@@ -3,7 +3,6 @@ using GoogleAPI.Domain.Models.NEBIM.Order;
 using GoogleAPI.Domain.Models.NEBIM.Request;
 using GoogleAPI.Persistance.Contexts;
 using GooleAPI.Application.Abstractions;
-using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using PuppeteerSharp;
@@ -89,12 +88,56 @@ namespace GoogleAPI.Persistance.Concreates
                     {
                         if (erm.StatusCode == 400)
                         {
-                            await _ls.LogInvoiceError($"{content}", $"{OperationType} Başarısız", erm.ExceptionMessage);
-
-                            throw new Exception(erm.ExceptionMessage);
+                            if (OperationType.Contains("SAYIM"))
+                            {
+                                await _ls.LogWarehouseWarn($"GELEN HATALI İSTEK", content);
+                            }
+                            else if (OperationType.Contains("SİPARİŞ"))
+                            {
+                                await _ls.LogOrderWarn($"GELEN HATALI İSTEK", content);
+                            }
+                            else if (OperationType.Contains("FATURA"))
+                            {
+                                await _ls.LogWarehouseWarn($"GELEN HATALI İSTEK", content);
+                            }
+                            else if (OperationType.Contains("TRANSFER"))
+                            {
+                                await _ls.LogWarehouseWarn($"GELEN HATALI İSTEK", content);
+                            }
+                            else if (OperationType.Contains("STOK"))
+                            {
+                                await _ls.LogWarehouseWarn($"GELEN HATALI İSTEK", content);
+                            }
+                            throw new Exception(OperationType+":"+ erm.ExceptionMessage);
                         }
                     }
-                    await _ls.LogInvoiceSuccess($"{OperationType} Başarılı", content);
+                 
+
+                    if (OperationType.Contains("SAYIM"))
+                    {
+                        await _ls.LogWarehouseSuccess($"{OperationType} GELEN İSTEK: ", content);
+                        await _ls.LogWarehouseSuccess($"{OperationType} NEBIM RESPONSE: ", result);
+                    }
+                    else if (OperationType.Contains("SİPARİŞ"))
+                    {
+                        await _ls.LogOrderSuccess($"{OperationType} GELEN İSTEK: ", content);
+                        await _ls.LogOrderSuccess($"{OperationType} NEBIM RESPONSE: ", result);
+                    }
+                    else if (OperationType.Contains("FATURA"))
+                    {
+                        await _ls.LogInvoiceSuccess($"{OperationType} GELEN İSTEK: ", content);
+                        await _ls.LogInvoiceSuccess($"{OperationType} NEBIM RESPONSE: ", result);
+                    }
+                    else if (OperationType.Contains("TRANSFER"))
+                    {
+                        await _ls.LogWarehouseSuccess($"{OperationType} GELEN İSTEK: ", content);
+                        await _ls.LogWarehouseSuccess($"{OperationType} NEBIM RESPONSE: ", result);
+                    }
+                    else if (OperationType.Contains("STOK"))
+                    {
+                        await _ls.LogWarehouseSuccess($"{OperationType} GELEN İSTEK: ", content);
+                        await _ls.LogWarehouseSuccess($"{OperationType} NEBIM RESPONSE: ", result);
+                    }
 
                     return result;
                 }

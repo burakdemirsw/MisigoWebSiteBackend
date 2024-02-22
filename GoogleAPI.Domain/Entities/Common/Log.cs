@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace GoogleAPI.Domain.Entities.Common
+﻿namespace GoogleAPI.Domain.Entities.Common
 {
-    public class Log : BaseEntity 
+    public class Log : BaseEntity
     {
         public string? Request { get; set; }
         public string? MessageHeader { get; set; }
