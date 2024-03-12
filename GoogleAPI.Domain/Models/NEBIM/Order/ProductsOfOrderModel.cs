@@ -2,6 +2,7 @@
 {
     public class ProductOfOrderModel
     {
+ 
         public string? Barcode { get; set; }
         public int? Quantity { get; set; }
         public string? PhotoUrl { get; set; }

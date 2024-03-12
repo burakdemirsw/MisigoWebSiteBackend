@@ -36,13 +36,13 @@ namespace GoogleAPI.Persistance.Concreates
                 string query = null;
                 if (procedureName.Contains("WS3"))
                 {
-                     query = $"exec {procedureName} '{orderNumber}' ,'{requestModel.TaxedOrTaxtFree}'";
+                    query = $"exec {procedureName} '{orderNumber}' ,'{requestModel.TaxedOrTaxtFree}'";
                 }
                 else
                 {
-                     query = $"exec {procedureName} '{orderNumber}'";
+                    query = $"exec {procedureName} '{orderNumber}'";
                 }
-     
+
 
                 OrderDataList = await _context.ztOrderData
                   .FromSqlRaw(query)
@@ -212,7 +212,7 @@ namespace GoogleAPI.Persistance.Concreates
                                     InvoiceDate = DateTime.Now.ToString("yyyy-MM-dd"),
                                     Description = orderData.InternalDescription, //siparisNo
                                     InternalDescription = orderData.InternalDescription, //siparisNo
-                                    IsOrderBase = false,
+                                    //IsOrderBase = false,
                                     IsCreditSale = true,
                                     ShipmentMethodCode = orderData.ShipmentMethodCode,
                                     CompanyCode = orderData.CompanyCode,
@@ -259,7 +259,7 @@ namespace GoogleAPI.Persistance.Concreates
                                     InvoiceDate = DateTime.Now.ToString("yyyy-MM-dd"),
                                     Description = orderData.InternalDescription, //siparisNo
                                     InternalDescription = orderData.InternalDescription, //siparisNo
-                                    IsOrderBase = true,
+                                    //IsOrderBase = true,
                                     IsCreditSale = true,
                                     ShipmentMethodCode = orderData.ShipmentMethodCode,
                                     CompanyCode = orderData.CompanyCode,
@@ -303,11 +303,11 @@ namespace GoogleAPI.Persistance.Concreates
                                 {
                                     ModelType = 19,
                                     VendorCode = orderData.CurrAccCode,
-                                    EInvoicenumber = requestModel.EInvoiceNumber ==null ?  orderData.EInvoicenumber : requestModel.EInvoiceNumber,
+                                    EInvoicenumber = requestModel.EInvoiceNumber == null ? orderData.EInvoicenumber : requestModel.EInvoiceNumber,
 
                                     PosTerminalID = 1,
                                     TaxTypeCode = orderData.TaxTypeCode,
-                                    InvoiceDate =requestModel.InvoiceDate == null ?  DateTime.Now.ToString("yyyy-MM-dd") : requestModel.InvoiceDate?.ToString("yyyy-MM-dd"),
+                                    InvoiceDate = requestModel.InvoiceDate == null ? DateTime.Now.ToString("yyyy-MM-dd") : requestModel.InvoiceDate?.ToString("yyyy-MM-dd"),
                                     Description = orderData.InternalDescription, //siparisNo
                                     InternalDescription = orderData.InternalDescription, //siparisNo
                                     IsOrderBase = true,
@@ -422,7 +422,7 @@ namespace GoogleAPI.Persistance.Concreates
                                         var jsonModel6 = new
                                         {
                                             ModelType = 7,
-                                            
+
                                             CustomerCode = orderData.CurrAccCode,
                                             InvoiceNumber = orderData.OrderNumber,
                                             PosTerminalID = 1,
@@ -664,8 +664,8 @@ namespace GoogleAPI.Persistance.Concreates
             }
             catch (Exception ex)
             {
-                await _ls.LogInvoiceError("", $"Faturalaştırma Aşamasında Hata Alındı", $"{ex.Message}"+  $"{ex.StackTrace}");
-                throw new Exception($"Faturalaştırma Aşamasında Hata Alındı : {ex.Message}"+  $"{ex.StackTrace}");
+                await _ls.LogInvoiceError("", $"Faturalaştırma Aşamasında Hata Alındı", $"{ex.Message}" + $"{ex.StackTrace}");
+                throw new Exception($"Faturalaştırma Aşamasında Hata Alındı : {ex.Message}" + $"{ex.StackTrace}");
 
             }
         }
@@ -822,7 +822,7 @@ namespace GoogleAPI.Persistance.Concreates
             }
 
             if (result2)
-            { 
+            {
                 await _ls.LogInvoiceSuccess($"{methodName} İşlemi Başarılı", $"İşlem Başarılı");
                 return true;
                 // Continue with additional processing if needed

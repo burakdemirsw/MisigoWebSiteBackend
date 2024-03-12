@@ -7,9 +7,22 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Models\NEBIM\Order\CreateNebimOrderModel.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Models\NEBIM\Order\CreateNebimOrderModel.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="FluentNHibernate" Version="3.2.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Http.Features" Version="2.1.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="7.0.2" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Models\NEBIM\Order\NewFolder\" />
   </ItemGroup>
 
 </Project>

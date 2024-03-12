@@ -18,6 +18,11 @@ namespace GooleAPI.Application.Abstractions
         Task LogInvoiceError(string request, string exceptioneader, string? exceptionText);
         Task LogInvoiceWarn(string exceptioneader, string? exceptionText);
         Task LogInvoiceSuccess(string exceptioneader, string? exceptionText);
+
+
+        Task LogSystemError(string request, string exceptioneader, string? exceptionText);
+        Task LogSystemWarn(string exceptioneader, string? exceptionText);
+        Task LogSystemSuccess(string exceptioneader, string? exceptionText);
         Task<List<Log_VM>> GetLogs(LogFilterModel model);
     }
 }

@@ -9,12 +9,13 @@ namespace GooleAPI.Application.IRepositories
 
         bool Remove(T model);
 
-        bool RemoveRange(List<T> datas);
+        Task<bool> RemoveRange(List<T> datas);
 
         Task<bool> RemoveAsync(int id);
 
         Task<bool> Update(T model);
 
         Task<int> SaveAsync(T model);
+        Task UpdateRange(List<T> models);
     }
 }

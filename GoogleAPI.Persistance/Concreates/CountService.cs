@@ -5,10 +5,8 @@ using GoogleAPI.Domain.Models.NEBIM.Product;
 using GoogleAPI.Domain.Models.NEBIM.Warehouse;
 using GoogleAPI.Persistance.Contexts;
 using GooleAPI.Application.Abstractions;
-using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
-using NHibernate.Hql.Ast.ANTLR.Tree;
 using System.Reflection;
 
 namespace GoogleAPI.Persistance.Concreates
@@ -24,7 +22,7 @@ namespace GoogleAPI.Persistance.Concreates
             _ls = ls;
             _gs = gs;
         }
-        public async Task<bool> CompleteCount(string orderNumber , bool isShelfBased , bool isShelfBased2)
+        public async Task<bool> CompleteCount(string orderNumber, bool isShelfBased, bool isShelfBased2)
         {
             string methodName = await _gs.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
             int orderSaleDetails;
@@ -35,7 +33,7 @@ namespace GoogleAPI.Persistance.Concreates
                 string query = $"Get_MSRAFCompleteCountShelf'{orderNumber}'";
                 orderSaleDetails = await _context.Database.ExecuteSqlRawAsync(query);
             }
-            
+
             else
             {
                 string query = $"Get_MSRAFCompleteCount'{orderNumber}'";
@@ -55,8 +53,8 @@ namespace GoogleAPI.Persistance.Concreates
 
             addQuery = $"exec usp_GetOrderForInvoiceToplu_SayimEkle '{orderNumber}'";
 
-           
-            if(deleteList.First().Lines != "")  
+
+            if (deleteList.First().Lines != "")
             {
                 //çıkar boş değilse 
                 CountConfirmModel deleteModel = new CountConfirmModel
@@ -73,53 +71,53 @@ namespace GoogleAPI.Persistance.Concreates
 
                 //çıkarı yolla 
 
-                    
-                    bool response = await CompleteCountTask(deleteModel,"SAYIM-ÇIKAR"); 
-                    if(response)
-                    {
+
+                bool response = await CompleteCountTask(deleteModel, "SAYIM-ÇIKAR");
+                if (response)
+                {
                     //çıkar başarılı ise ekleyi yolla
 
 
-                        List<CountConfirmData> addList = await _context.CountConfirmData.FromSqlRaw(addQuery).ToListAsync();
-                        CountConfirmModel addModel = new CountConfirmModel
-                        {
-                            OfficeCode = addList.First().OfficeCode,
-                            ModelType = addList.First().ModelType,
-                            StoreCode = addList.First().StoreCode,
-                            WarehouseCode = addList.First().WarehouseCode,
-                            CompanyCode = addList.First().CompanyCode,
-                            InnerProcessType = addList.First().InnerProcessType,
-                            OperationDate = addList.First().OperationDate,
-                            Lines = JsonConvert.DeserializeObject<List<MyDataLine>>(addList.First().Lines)
+                    List<CountConfirmData> addList = await _context.CountConfirmData.FromSqlRaw(addQuery).ToListAsync();
+                    CountConfirmModel addModel = new CountConfirmModel
+                    {
+                        OfficeCode = addList.First().OfficeCode,
+                        ModelType = addList.First().ModelType,
+                        StoreCode = addList.First().StoreCode,
+                        WarehouseCode = addList.First().WarehouseCode,
+                        CompanyCode = addList.First().CompanyCode,
+                        InnerProcessType = addList.First().InnerProcessType,
+                        OperationDate = addList.First().OperationDate,
+                        Lines = JsonConvert.DeserializeObject<List<MyDataLine>>(addList.First().Lines)
 
-                        };
+                    };
 
-                        bool response2 = await CompleteCountTask(addModel, "SAYIM-EKLE"); 
-                        if(response2)
-                        {
+                    bool response2 = await CompleteCountTask(addModel, "SAYIM-EKLE");
+                    if (response2)
+                    {
                         //ekle başarılı ise bitir
-                            await _ls.LogWarehouseSuccess($"{methodName} Başarılı", $"Çıkar İşlemi Yapıldı Ekle İşlemi Yapıldı");
+                        await _ls.LogWarehouseSuccess($"{methodName} Başarılı", $"Çıkar İşlemi Yapıldı Ekle İşlemi Yapıldı");
 
-                            return true; 
-                        }
-                        else
-                        {
-
-                             //ekle başarısız ise bitir
-                             //RUN_DELETE SP
-                            await _ls.LogWarehouseSuccess($"{methodName} Başarılı", $"Çıkar İşlemi Yapıldı Ekle İşlemi Yapılmadı");
-
-                            return true; //yapılan çıkar işmini sil
-                        }
-
+                        return true;
                     }
                     else
                     {
-                        await _ls.LogOrderWarn($"{methodName} Sırasında Hata Alındı", $"Çıkar İşlemi Yapılmadı Ekle İşlemi Yapılmadı");
 
-                        throw new Exception("Ekle Ve Çıkar Başarısız");
+                        //ekle başarısız ise bitir
+                        //RUN_DELETE SP
+                        await _ls.LogWarehouseSuccess($"{methodName} Başarılı", $"Çıkar İşlemi Yapıldı Ekle İşlemi Yapılmadı");
 
+                        return true; //yapılan çıkar işmini sil
                     }
+
+                }
+                else
+                {
+                    await _ls.LogOrderWarn($"{methodName} Sırasında Hata Alındı", $"Çıkar İşlemi Yapılmadı Ekle İşlemi Yapılmadı");
+
+                    throw new Exception("Ekle Ve Çıkar Başarısız");
+
+                }
 
 
             }
@@ -133,7 +131,7 @@ namespace GoogleAPI.Persistance.Concreates
                     //ekle başarısız ise bitir
                     await _ls.LogOrderWarn($"{methodName} Sırasında Hata Alındı", $"Çıkar İşlemi Yapılmadı Ekle İşlemi Yapılmadı");
                     throw new Exception("Ekle Ve Çıkar Başarısız : Çıkar ve Ekle Lines Null");
-                   
+
                 }
                 else
                 {
@@ -179,14 +177,14 @@ namespace GoogleAPI.Persistance.Concreates
 
 
         }
-        public async Task<bool> CompleteCountTask(CountConfirmModel model,string countType )
+        public async Task<bool> CompleteCountTask(CountConfirmModel model, string countType)
         {
 
             string methodName = await _gs.GetCurrentMethodName(MethodBase.GetCurrentMethod().ReflectedType.Name);
 
             if (model.Lines == null)
             {
-               return false;
+                return false;
             }
             string json = JsonConvert.SerializeObject(model);
             using (var httpClient2 = new HttpClient())
@@ -319,7 +317,7 @@ namespace GoogleAPI.Persistance.Concreates
         {
             string query = $"exec Post_MSRAFSTOKEKLE '{model.Barcode}','{model.ShelfNo}',0,'{model.OrderNumber}',{model.Quantity},'{model.WarehouseCode}','{model.CurrAccCode}'";
 
-           var  productCountModel = await _context.ztProductCountModel.FromSqlRaw(query).ToListAsync();
+            var productCountModel = await _context.ztProductCountModel.FromSqlRaw(query).ToListAsync();
 
             return productCountModel.FirstOrDefault();
         }
@@ -328,18 +326,18 @@ namespace GoogleAPI.Persistance.Concreates
 
 
             string query = $"exec Get_MSRAFSAYIM6'{model.Barcode}','{model.ShelfNo}',0,'{model.OrderNo}',{model.Quantity},'{model.Warehouse}','','{model.BatchCode}','{model.WarehouseTo}'";
-            var  productCountModel = await _context.ztProductCountModel.FromSqlRaw(query).ToListAsync();
+            var productCountModel = await _context.ztProductCountModel.FromSqlRaw(query).ToListAsync();
 
             return productCountModel.FirstOrDefault();
-            
+
 
         }
         public async Task<ProductCountModel> CountProduct3(CountProductRequestModel2 model)
         {
 
             string query = $"exec Get_MSRAFSAYIM3'{model.Barcode}','{model.ShelfNo}',0,'{model.OrderNo}',{model.Quantity},'{model.WarehouseCode}','{model.CurrAccCode}','{model.BatchCode}','{model.IsReturn}','{model.SalesPersonCode}','{model.TaxTypeCode}'";
-           var productCountModel = await _context.ztProductCountModel.FromSqlRaw(query).ToListAsync();
-            
+            var productCountModel = await _context.ztProductCountModel.FromSqlRaw(query).ToListAsync();
+
             return productCountModel.FirstOrDefault();
 
         }
@@ -434,13 +432,13 @@ namespace GoogleAPI.Persistance.Concreates
 
         public async Task<int> DeleteCountById(string id)
         {
-           
-                var affectedRow = _context.Database.ExecuteSqlRaw($"delete from ZTMSRAFSAYIM3 where OrderNumber = '{id}' ");
+
+            var affectedRow = _context.Database.ExecuteSqlRaw($"delete from ZTMSRAFSAYIM3 where OrderNumber = '{id}' ");
 
 
             return affectedRow;
-               
-            
+
+
         }
     }
 }

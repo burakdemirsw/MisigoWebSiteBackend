@@ -2,6 +2,8 @@
 {
     public class CreatePurchaseInvoice
     {
+        public Guid? Id { get; set; }
+
         public string? ShelfNo { get; set; }
         public string? OfficeCode { get; set; }
         public string? WarehouseCode { get; set; }

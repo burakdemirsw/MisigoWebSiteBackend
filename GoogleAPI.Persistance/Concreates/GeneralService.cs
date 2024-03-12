@@ -91,27 +91,43 @@ namespace GoogleAPI.Persistance.Concreates
                             if (OperationType.Contains("SAYIM"))
                             {
                                 await _ls.LogWarehouseWarn($"GELEN HATALI İSTEK", content);
+                                await _ls.LogWarehouseWarn($"NEBIM YANIT", result);
+
                             }
                             else if (OperationType.Contains("SİPARİŞ"))
                             {
                                 await _ls.LogOrderWarn($"GELEN HATALI İSTEK", content);
+                                await _ls.LogOrderWarn($"NEBIM YANIT", result);
+
                             }
                             else if (OperationType.Contains("FATURA"))
                             {
                                 await _ls.LogWarehouseWarn($"GELEN HATALI İSTEK", content);
+                                await _ls.LogWarehouseWarn($"NEBIM YANIT", result);
+
                             }
                             else if (OperationType.Contains("TRANSFER"))
                             {
                                 await _ls.LogWarehouseWarn($"GELEN HATALI İSTEK", content);
+                                await _ls.LogWarehouseWarn($"NEBIM YANIT", result);
+
                             }
                             else if (OperationType.Contains("STOK"))
                             {
                                 await _ls.LogWarehouseWarn($"GELEN HATALI İSTEK", content);
+                                await _ls.LogWarehouseWarn($"NEBIM YANIT", result);
+
                             }
-                            throw new Exception(OperationType+":"+ erm.ExceptionMessage);
+                            else if (OperationType.Contains("MÜŞTERİ"))
+                            {
+                                await _ls.LogWarehouseWarn($"GELEN HATALI İSTEK", content);
+                                await _ls.LogWarehouseWarn($"GELEN HATALI İSTEK", result);
+
+                            }
+                            throw new Exception(OperationType + ":" + erm.ExceptionMessage);
                         }
                     }
-                 
+
 
                     if (OperationType.Contains("SAYIM"))
                     {
@@ -137,6 +153,11 @@ namespace GoogleAPI.Persistance.Concreates
                     {
                         await _ls.LogWarehouseSuccess($"{OperationType} GELEN İSTEK: ", content);
                         await _ls.LogWarehouseSuccess($"{OperationType} NEBIM RESPONSE: ", result);
+                    }
+                    else if (OperationType.Contains("MÜŞTERİ"))
+                    {
+                        await _ls.LogOrderSuccess($"{OperationType} GELEN İSTEK: ", content);
+                        await _ls.LogOrderSuccess($"{OperationType} NEBIM RESPONSE: ", result);
                     }
 
                     return result;

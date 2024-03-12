@@ -2,6 +2,8 @@
 {
     public class CollectedProduct
     {
+        public Guid? Id { get; set; }
+
         public string? PhotoUrl { get; set; }
         public string? ShelfNo { get; set; }
         public string? Barcode { get; set; }
@@ -9,10 +11,13 @@
         public string? ItemCode { get; set; }
         public string? BatchCode { get; set; }
         public string? LineId { get; set; }
+        public int? AvailableQty { get; set; }
     }
 
     public class CountedProduct
     {
+        public Guid? Id { get; set; }
+
         public string? PhotoUrl { get; set; }
         public string? ShelfNo { get; set; }
         public string? Barcode { get; set; }

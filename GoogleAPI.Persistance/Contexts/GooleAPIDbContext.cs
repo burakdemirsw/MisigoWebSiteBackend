@@ -1,13 +1,19 @@
-﻿using GoogleAPI.Domain.Entities.Common;
+﻿using Google.Apis.Drive.v3.Data;
+using GoogleAPI.Domain.Entities;
+using GoogleAPI.Domain.Entities.Common;
 using GoogleAPI.Domain.Models.Filter;
 using GoogleAPI.Domain.Models.NEBIM;
+using GoogleAPI.Domain.Models.NEBIM.Address;
 using GoogleAPI.Domain.Models.NEBIM.Category;
 using GoogleAPI.Domain.Models.NEBIM.Customer;
+using GoogleAPI.Domain.Models.NEBIM.Customer.CreateCustomerModel;
 using GoogleAPI.Domain.Models.NEBIM.Invoice;
 using GoogleAPI.Domain.Models.NEBIM.Order;
+using GoogleAPI.Domain.Models.NEBIM.Order.CreateOrderModel;
 using GoogleAPI.Domain.Models.NEBIM.Product;
 using GoogleAPI.Domain.Models.NEBIM.Shelf;
 using GoogleAPI.Domain.Models.NEBIM.Warehouse;
+using GoogleAPI.Domain.Models.Payment;
 using Microsoft.EntityFrameworkCore;
 
 
@@ -22,6 +28,8 @@ namespace GoogleAPI.Persistance.Contexts
         }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+
+
 
             modelBuilder.Entity<WarehosueOperationListModel>().HasNoKey();
             modelBuilder.Entity<SaleOrderModel>().HasNoKey();
@@ -64,11 +72,39 @@ namespace GoogleAPI.Persistance.Contexts
             modelBuilder.Entity<QrOperationResponse>().HasNoKey();
             modelBuilder.Entity<DestroyItem_Response>().HasNoKey();
             modelBuilder.Entity<InvoiceOfCustomer_VM>().HasNoKey();
+            modelBuilder.Entity<CustomerList_VM>().HasNoKey();
+            modelBuilder.Entity<CustomerAddress_VM>().HasNoKey();
+            modelBuilder.Entity<CheckPostalAddressModel>().HasNoKey();
+            modelBuilder.Entity<Address_VM>().HasNoKey();
+            modelBuilder.Entity<OrderDetail_Model>().HasNoKey();
+
 
 
         }
-        //
-        //Description ProductCountModel3 QrOperationResponse DestroyItem_Response InvoiceOfCustomer_VM
+        //OrderDetail_Model
+
+        public DbSet<OrderDetail_Model>? OrderDetail_Model { get; set; }
+
+        public DbSet<Domain.Models.Payment.Payment>? msg_Payments { get; set; }
+
+        public DbSet<ClientCustomer>? msg_ClientCustomers { get; set; }
+
+        public DbSet<Domain.Entities.User>? msg_Users { get; set; }
+        public DbSet<MailInfo>? msg_MailInfos { get; set; }
+        public DbSet<CompanyInfo>? msg_CompanyInfos { get; set; }
+
+        public DbSet<ClientOrder>? msg_ClientOrders { get; set; }
+        public DbSet<ClientOrderBasketItem>? msg_ClientOrderBasketItems { get; set; }
+
+
+        public DbSet<Address_VM>? Address_VM { get; set; }
+
+        public DbSet<CheckPostalAddressModel>? CheckPostalAddressModel { get; set; }
+
+        public DbSet<CustomerAddress_VM>? CustomerAddress_VM { get; set; }
+
+        public DbSet<CustomerList_VM>? CustomerList_VM { get; set; }
+
         public DbSet<InvoiceOfCustomer_VM>? InvoiceOfCustomer_VM { get; set; }
 
         public DbSet<QrOperationResponse>? QrOperationResponse { get; set; }

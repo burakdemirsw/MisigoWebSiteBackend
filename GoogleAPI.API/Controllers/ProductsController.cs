@@ -39,7 +39,7 @@ namespace GoogleAPI.API.Controllers
             {
                 if (model.Barcode != null)
                 {
-                    List<ProductList_VM> products = await _context.ProductListModel.FromSqlRaw($" [dbo].[Get_MSRAFSearch] '{model.Barcode}'").ToListAsync();
+                    List<ProductList_VM> products = await _context.ProductListModel.FromSqlRaw($" [dbo].[Get_MSRAFSearch2] '{model.Barcode}'").ToListAsync();
 
                     return Ok(products);
                 }

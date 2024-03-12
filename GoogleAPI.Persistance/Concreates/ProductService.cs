@@ -22,11 +22,11 @@ namespace GoogleAPI.Persistance.Concreates
         public async Task<List<BarcodeModel>> GetBarcodeDetail(string qrCode)
         {
 
-            
-                List<BarcodeModel>? barcodeModels = await _context.BarcodeModels.FromSqlRaw($"usp_QRKontrolSorgula '{qrCode}'").ToListAsync();
-                //BarcodeModel barcodeModel = barcodeModels.FirstOrDefault();
-                return barcodeModels;
-           
+
+            List<BarcodeModel>? barcodeModels = await _context.BarcodeModels.FromSqlRaw($"usp_QRKontrolSorgula '{qrCode}'").ToListAsync();
+            //BarcodeModel barcodeModel = barcodeModels.FirstOrDefault();
+            return barcodeModels;
+
         }
 
 

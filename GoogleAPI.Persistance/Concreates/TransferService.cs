@@ -5,7 +5,6 @@ using GoogleAPI.Domain.Models.NEBIM.Shelf;
 using GoogleAPI.Domain.Models.NEBIM.Warehouse;
 using GoogleAPI.Persistance.Contexts;
 using GooleAPI.Application.Abstractions;
-using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using System.Reflection;
@@ -62,16 +61,16 @@ namespace GoogleAPI.Persistance.Concreates
 
 
         }
-        public async Task<List<InventoryItemModel>> GetInventoryItem(string type )
+        public async Task<List<InventoryItemModel>> GetInventoryItem(string type)
         {
 
-            if(type == "0")
+            if (type == "0")
             {
                 List<InventoryItemModel> InventoryItemModels = await _context.InventoryItemModels.FromSqlRaw("GET_MSRafTransferToWarehouse").ToListAsync();
 
                 return InventoryItemModels;
             }
-            else if(type =="1")
+            else if (type == "1")
             {
                 List<InventoryItemModel> InventoryItemModels = await _context.InventoryItemModels.FromSqlRaw("GET_MSRafTransferToWarehouse_Full").ToListAsync();
 
@@ -81,7 +80,7 @@ namespace GoogleAPI.Persistance.Concreates
             {
                 return null;
             }
-     
+
 
         }
         public async Task<List<CountConfirmData>> GetInventoryFromOrderNumber(String OrderNo)
@@ -112,8 +111,8 @@ namespace GoogleAPI.Persistance.Concreates
 
             int affectedRows = 0;
             var query = $"exec Usp_PostZtMSRAFSTOKTransfer '{model.Barcode}','{model.BatchCode}','{model.ShelfNo}','{model.Quantity}','{model.WarehouseCode}','{model.TargetShelfNo}'";
-                Console.WriteLine(query);
-            affectedRows +=  _context.Database.ExecuteSqlRaw(query);
+            Console.WriteLine(query);
+            affectedRows += _context.Database.ExecuteSqlRaw(query);
 
             return affectedRows;
 
@@ -138,7 +137,7 @@ namespace GoogleAPI.Persistance.Concreates
             return warehouseModels;
 
         }
-        public async Task<List<WarehosueOperationListModel>> GetWarehosueOperationList( string status)
+        public async Task<List<WarehosueOperationListModel>> GetWarehosueOperationList(string status)
         {
 
             List<WarehosueOperationListModel> saleOrderModel = await _context.ztWarehosueOperationListModel.FromSqlRaw($"GET_GetWarehosueOperationList {status}").ToListAsync();
@@ -147,11 +146,11 @@ namespace GoogleAPI.Persistance.Concreates
 
         }
 
-        public async Task<WarehosueOperationListModel> GetWarehosueOperationListByInnerNumber( string innerNumber)
+        public async Task<WarehosueOperationListModel> GetWarehosueOperationListByInnerNumber(string innerNumber)
         {
 
             List<WarehosueOperationListModel> saleOrderModels = await _context.ztWarehosueOperationListModel.FromSqlRaw($"GET_GetWarehosueOperationListByInnerNumber '{innerNumber}'").ToListAsync();
-            if (saleOrderModels.Count >0 )
+            if (saleOrderModels.Count > 0)
             {
                 return saleOrderModels.First();
 
@@ -161,7 +160,7 @@ namespace GoogleAPI.Persistance.Concreates
                 return null;
             }
 
-   
+
 
         }
         public async Task<int> DeleteWarehouseTransferByOrderNumber(string id)
@@ -277,7 +276,7 @@ namespace GoogleAPI.Persistance.Concreates
 
 
             List<TransferData>? transferDatas = await _context.TransferData.FromSqlRaw($"exec usp_GetOrderForInvoiceToplu_WT '{orderNo}'").ToListAsync();
-            TransferData transferData = transferDatas.First(); 
+            TransferData transferData = transferDatas.First();
             if (transferData != null)
             {
                 List<TransferItem>? transferItems = JsonConvert.DeserializeObject<List<TransferItem>>(transferData.Lines);
@@ -306,7 +305,7 @@ namespace GoogleAPI.Persistance.Concreates
 
                 var json = JsonConvert.SerializeObject(transferDataModel);
 
-                var response =await  _gs.PostNebimAsync(json, "TRANSFER");
+                var response = await _gs.PostNebimAsync(json, "TRANSFER");
 
 
                 if (response != null)
@@ -334,10 +333,10 @@ namespace GoogleAPI.Persistance.Concreates
         public async Task<int> SendNebımToTransferProduct(WarehouseOperationProductModel model)
         {
 
-            
-                string sql = "EXECUTE Usp_PostZtMSRAFSTOK {0}, {1}, {2}, {3}, {4}";
-                // string sql2 = $"update ztTransferOnayla set IsCompleted = 1 where InnerNumber = '{model.InnerNumber}'";
-                object[] parameters = {
+
+            string sql = "EXECUTE Usp_PostZtMSRAFSTOK {0}, {1}, {2}, {3}, {4}";
+            // string sql2 = $"update ztTransferOnayla set IsCompleted = 1 where InnerNumber = '{model.InnerNumber}'";
+            object[] parameters = {
                       model.Barcode,
                       model.BatchCode,
                       model.ShelfNumber,
@@ -345,31 +344,31 @@ namespace GoogleAPI.Persistance.Concreates
                       model.Warehouse
                     };
 
-                int number = await _context.Database.ExecuteSqlRawAsync(sql, parameters);
+            int number = await _context.Database.ExecuteSqlRawAsync(sql, parameters);
 
-                // int number2 = _context.Database.ExecuteSqlRaw(sql2);
+            // int number2 = _context.Database.ExecuteSqlRaw(sql2);
 
-                return number;
-           
+            return number;
+
         }
 
         public async Task<bool> ConfirmOperation(List<string> InnerNumberList)
         {
-            
-                foreach (var item in InnerNumberList)
-                {
-                    string sql2 = $"update ztTransferOnayla set IsCompleted = 1 where InnerNumber = '{item}'";
 
-                    int number2 = _context.Database.ExecuteSqlRaw(sql2);
-                }
+            foreach (var item in InnerNumberList)
+            {
+                string sql2 = $"update ztTransferOnayla set IsCompleted = 1 where InnerNumber = '{item}'";
 
-                return true;
-            
+                int number2 = _context.Database.ExecuteSqlRaw(sql2);
+            }
+
+            return true;
+
         }
-        public async Task<List<TransferRequestListModel>> GetTransferRequestListModel(string type )
+        public async Task<List<TransferRequestListModel>> GetTransferRequestListModel(string type)
         {
 
-            if (type =="0")
+            if (type == "0")
             {
                 TransferRequestListModel model = new TransferRequestListModel();
 
@@ -379,7 +378,7 @@ namespace GoogleAPI.Persistance.Concreates
 
                 return list;
             }
-            else if(type =="1")
+            else if (type == "1")
             {
                 TransferRequestListModel model = new TransferRequestListModel();
 
@@ -389,7 +388,8 @@ namespace GoogleAPI.Persistance.Concreates
 
                 return list;
 
-            }else if(type =="2")
+            }
+            else if (type == "2")
             {
                 TransferRequestListModel model = new TransferRequestListModel();
 
@@ -403,18 +403,18 @@ namespace GoogleAPI.Persistance.Concreates
             {
                 return null;
             }
-           
 
-            
+
+
         }
         public async Task<List<BarcodeModel>> GetOperationWarehousue(string innerNumber)
         {
 
-             List<BarcodeModel> barcodeModels = await _context.BarcodeModels.FromSqlRaw($"usp_QRKontrolSorgula '{innerNumber}'").ToListAsync();
+            List<BarcodeModel> barcodeModels = await _context.BarcodeModels.FromSqlRaw($"usp_QRKontrolSorgula '{innerNumber}'").ToListAsync();
             return barcodeModels;
 
 
         }
 
     }
-  }
+}

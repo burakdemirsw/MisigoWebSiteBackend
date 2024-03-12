@@ -1,14 +1,24 @@
 ﻿using GoogleAPI.Domain.Models.Filter;
+using GoogleAPI.Domain.Models.NEBIM.Address;
 using GoogleAPI.Domain.Models.NEBIM.Customer;
+using GoogleAPI.Domain.Models.NEBIM.Customer.CreateCustomerModel;
 using GoogleAPI.Domain.Models.NEBIM.Order;
+using GoogleAPI.Domain.Models.NEBIM.Order.CreateOrderModel;
 using GoogleAPI.Domain.Models.NEBIM.Product;
+using GoogleAPI.Domain.Models.NEBIM.Request;
 using GoogleAPI.Persistance.Contexts;
 using GooleAPI.Application.Abstractions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using NHibernate.Criterion;
+using Remotion.Linq.Clauses;
 using System.Drawing;
+using System.Net;
 using System.Reflection;
 using System.Text;
+using ZXing;
 
 namespace GoogleAPI.Persistance.Concretes
 {
@@ -18,27 +28,28 @@ namespace GoogleAPI.Persistance.Concretes
         private GooleAPIDbContext _context;
         private IGeneralService _gs;
         private ILogService _ls;
-
-        public OrderService(GooleAPIDbContext context, ILogService ls, IGeneralService gs)
+        private IConfiguration _congfiguration;
+        public OrderService(GooleAPIDbContext context, ILogService ls, IGeneralService gs, IConfiguration congfiguration)
         {
             _context = context;
             _ls = ls;
             _gs = gs;
+            _congfiguration = congfiguration;
         }
 
         public Task<Bitmap> GetOrderDetailsFromQrCode(string data)
         {
             throw new NotImplementedException();
         }
-        public async Task<List<SaleOrderModel>> GetSaleOrders(int type ) //çalışıyor
+        public async Task<List<SaleOrderModel>> GetSaleOrders(int status, int invoiceStatus) //toplanabilr 
         {
 
-            List<SaleOrderModel> saleOrderModel = await _context.SaleOrderModels.FromSqlRaw($"exec GET_MSRAFOrderList3 {type}").ToListAsync();
+            List<SaleOrderModel> saleOrderModel = await _context.SaleOrderModels.FromSqlRaw($"exec GET_MSRAFOrderList5 {status},'{invoiceStatus}'").ToListAsync();
 
             return saleOrderModel;
 
         }
-        public async Task<List<SaleOrderModel>> GetSaleOrdersWithMissingItems() //çalışıyor
+        public async Task<List<SaleOrderModel>> GetSaleOrdersWithMissingItems( ) //çalışıyor
         {
 
             List<SaleOrderModel> saleOrderModel = await _context.SaleOrderModels.FromSqlRaw($"exec GET_MSRAFOrderListMissing ").ToListAsync();
@@ -183,7 +194,7 @@ namespace GoogleAPI.Persistance.Concretes
         public async Task<List<SaleOrderModel>> GetPurchaseOrdersByFilter(OrderFilterModel model)
         {
 
-           
+
 
             var query = $"exec GET_MSRAFOrderBPList2  '{model.OrderNo}','{model.CurrAccCode}','{model.CustomerName}','{model.StartDate:yyyy-MM-dd}','{model.EndDate:yyyy-MM-dd}'";
             List<SaleOrderModel> saleOrderModel = await _context.SaleOrderModels.FromSqlRaw(query).ToListAsync();
@@ -294,6 +305,317 @@ namespace GoogleAPI.Persistance.Concretes
 
         }
 
+        public async Task<List<CustomerList_VM>> GetCustomerList_2(GetCustomerList_CM request)
+        {
+
+            var query = "select * from MSG_MusteriList() where ";
+            if (!String.IsNullOrEmpty(request.Mail))
+            {
+                query += $" Mail like '%{request.Mail}%'";
+            }
+            if (!String.IsNullOrEmpty(request.Phone))
+            {
+                query += $" Phone like '%{request.Phone}%'";
+            }
+            if (!String.IsNullOrEmpty(request.CurrAccCode))
+            {
+                query += $" CurrAccCode like '%{request.CurrAccCode}%'";
+            }
+            if (String.IsNullOrEmpty(request.Mail) && String.IsNullOrEmpty(request.Phone) && String.IsNullOrEmpty(request.CurrAccCode))
+            {
+                query = "select * from MSG_MusteriList()";
+            }
+            List<CustomerList_VM> customerList = _context.CustomerList_VM.FromSqlRaw(query).ToList();
+
+            return customerList;
+
+        }
+
+        public async Task<List<CustomerAddress_VM>> GetCustomerAddress(GetCustomerAddress_CM request)
+        {
+            var query = "select * from MSG_MusteriAdres() where ";
+            if (!String.IsNullOrEmpty(request.CurrAccCode))
+            {
+                query += $" CurrAccCode like '%{request.CurrAccCode}%'";
+            }
+            else
+            {
+                query = "select * from MSG_MusteriAdres()";
+            }
+
+
+            List<CustomerAddress_VM> addressList = _context.CustomerAddress_VM.FromSqlRaw(query).ToList();
+
+            return addressList;
+        }
+
+        public async Task<CreateCustomer_ResponseModel> SendCustomerToNebim(CreateCustomer_CM request)
+        {
+
+           
+                NebimCustomer customer = new NebimCustomer();
+                customer.ModelType = 2;
+                customer.CurrAccCode = "";
+                customer.CurrAccDescription = request.CurrAccDescription;
+                customer.TaxNumber = request.TaxNumber;
+                customer.OfficeCode = request.OfficeCode;
+                customer.TaxOfficeCode = request.TaxOfficeCode;
+                customer.MersisNum = request.MersisNum;
+                customer.RetailSalePriceGroupCode = "";
+                customer.IdentityNum = "11111111111";
+                customer.CreditLimit = 0;
+                customer.CurrencyCode = "TRY";
+                customer.PostalAddresses = new List<PostalAddress>();
+                var postalAddress = request.Address != null ?  await CreatePostallAdress(request.Address,true) : await CreatePostallAdress(request.Address, false);
+            
+                customer.PostalAddresses.Add(postalAddress);
+
+                customer.Communications = new List<Communication>();
+                Communication Communication = new Communication();
+                Communication.CommAddress = request.PhoneNumber;
+                Communication.CommunicationTypeCode = 7;
+
+                if (Communication.CommAddress != null)
+                {
+                    customer.Communications.Add(Communication);
+
+                }
+                Communication Communication2 = new Communication();
+                Communication2.CommAddress = request.Mail;
+                Communication2.CommunicationTypeCode = 3;
+
+                if (Communication2.CommAddress != null)
+                {
+                    customer.Communications.Add(Communication2);
+
+                }
+
+                var json = JsonConvert.SerializeObject(customer);
+
+                var response = await _gs.PostNebimAsync(json, "MÜŞTERİ");
+                JObject jsonResponse = JObject.Parse(response);
+                string CurrAccCode = jsonResponse["CurrAccCode"].ToString();
+                CreateCustomer_ResponseModel responseModel = new CreateCustomer_ResponseModel();
+                responseModel.CurrAccCode = CurrAccCode;
+                return responseModel;
+         
+
+
+
+            
+        }
+
+
+        public async Task<PostalAddress> CreatePostallAdress(Address address , bool type )
+        {
+
+            if(type == true)
+            {
+                PostalAddress PostalAddress = new PostalAddress();
+
+                PostalAddress.AddressTypeCode = "1";
+                PostalAddress.CountryCode = address.Country;
+                PostalAddress.StateCode = address.Region;
+                PostalAddress.CityCode = address.Province;
+                PostalAddress.DistrictCode = address.District;
+                PostalAddress.Address = address.Description;
+
+
+                return PostalAddress;
+
+            }
+            else
+            {
+                PostalAddress PostalAddress = new PostalAddress();
+
+                PostalAddress.AddressTypeCode = "1";
+                PostalAddress.CountryCode = "TR";
+                PostalAddress.StateCode = "TR.MR";
+                PostalAddress.CityCode = "TR.34";
+                PostalAddress.DistrictCode = "TR.03408";
+                PostalAddress.Address = "Molla Gürani, Uygar Sokağı No:17 A, Fatih İstanbul Türkiye";
+
+                return PostalAddress;
+
+            }
+
+
+
+        }
+
+  
+
+        public async  Task<bool> CreateOrder(NebimOrder Order)
+        {
+
+            string content = Newtonsoft.Json.JsonConvert.SerializeObject(Order);
+
+            var response = await _gs.PostNebimAsync(content, "SİPARİŞ");
+            Console.WriteLine(response.ToString());
+            return true;
+        }
+
+        public async Task<ClientOrder_DTO> GetClientOrder(Guid id)
+        {
+            ClientOrder_DTO clientOrder_DTO = new ClientOrder_DTO();
+            clientOrder_DTO.ClientOrder = await _context.msg_ClientOrders.FirstOrDefaultAsync(o => o.Id == id);
+            clientOrder_DTO.ClientOrderBasketItems =await  _context.msg_ClientOrderBasketItems.Where(i=>i.OrderId == id).ToListAsync();
+
+            return clientOrder_DTO;
+        }
+
+        public async Task<bool> CreateClientOrder( ClientOrder request)
+        {
+            ClientOrder? clientOrder = await _context.msg_ClientOrders.FirstOrDefaultAsync(o => o.Id == request.Id);
+            if (clientOrder == null)
+            {
+                var response = await _context.msg_ClientOrders.AddAsync(request);
+                Boolean state = response.State == EntityState.Added;
+                await _context.SaveChangesAsync();
+                return state;
+            }
+            else
+            {
+                return true;
+            }
+               
+        }
+
+        public async Task<bool> CreateClientOrderBasketItem(ClientOrderBasketItem request)
+        {
+          
+                ClientOrder? clientOrder = await _context.msg_ClientOrders.FirstOrDefaultAsync(o => o.Id == request.OrderId);
+                if (clientOrder != null)
+                {
+                ClientOrderBasketItem? clientOrderBasketItem = await _context.msg_ClientOrderBasketItems.FirstOrDefaultAsync(o => o.OrderId == request.OrderId && o.LineId == request.LineId);
+                if (clientOrderBasketItem != null)
+                {
+                    clientOrderBasketItem.Quantity += 1;
+                    var response =  _context.msg_ClientOrderBasketItems.Update(clientOrderBasketItem);
+                    Boolean state = response.State == EntityState.Modified;
+                     _context.SaveChanges();
+                    return state;
+                }
+                else
+                {
+                    var response = await _context.msg_ClientOrderBasketItems.AddAsync(request);
+                    Boolean state = response.State == EntityState.Added;
+                     _context.SaveChanges();
+                    return state;
+                }
+              
+                }
+                else
+                {
+                    throw new Exception("Bu Siparişe Ait Kayıt Bulunamadı");
+                }
+
+           
+        
+        }
+
+        public async Task<List<ClientCustomer>> GetClientCustomer()
+        {
+
+            List<ClientCustomer>? clientCustomers = await _context.msg_ClientCustomers.ToListAsync();
+
+
+            return clientCustomers;
+
+        }
+
+
+        public async Task<bool> EditClientCustomer(ClientCustomer request)
+        {
+
+            ClientCustomer? clientCustomer = await _context.msg_ClientCustomers.FirstOrDefaultAsync(o => o.Id == request.Id);
+            if (clientCustomer != null) //güncelle
+            {
+                clientCustomer.Description = request.Description;
+                clientCustomer.CurrAccCode = request.CurrAccCode;
+                clientCustomer.BussinesCardPhotoUrl = request.BussinesCardPhotoUrl;
+                clientCustomer.StampPhotoUrl = request.StampPhotoUrl;
+                var response =  _context.msg_ClientCustomers.Update(request);
+                Boolean state = response.State == EntityState.Modified;
+                _context.SaveChanges();
+                return state;
+            }
+            else
+            {
+                var response = await _context.msg_ClientCustomers.AddAsync(request);
+                Boolean state = response.State == EntityState.Added;
+                _context.SaveChanges();
+                return state;
+            }
+
+
+
+        }
+
+
+        public async Task<bool> DeleteClientOrderBasketItem(Guid orderId , Guid lineId )
+        {
+            ClientOrderBasketItem? clientOrderBasketItem = await _context.msg_ClientOrderBasketItems.FirstOrDefaultAsync(o => o.Id == orderId && o.LineId ==lineId);
+            if (clientOrderBasketItem != null)
+            {
+                  _context.msg_ClientOrderBasketItems.Remove(clientOrderBasketItem);
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            else
+            {
+                throw new Exception("Bu Siparişe Ait Kayıt Bulunamadı");
+            }
+
+        }
+
+        public async Task<bool> UpdateClientOrderBasketItem(Guid orderId, Guid lineId,int quantity,decimal price)
+        {
+            ClientOrderBasketItem? clientOrderBasketItem = await _context.msg_ClientOrderBasketItems.FirstOrDefaultAsync(o => o.OrderId == orderId && o.LineId == lineId);
+            if (clientOrderBasketItem != null)
+            {
+                clientOrderBasketItem.Quantity = quantity;
+                clientOrderBasketItem.Price = price;    
+                _context.msg_ClientOrderBasketItems.Update(clientOrderBasketItem);
+
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            else
+            {
+                throw new Exception("Bu Siparişe Ait Kayıt Bulunamadı");
+            }
+
+        }
+
+        public async Task<bool> UpdateClientOrderPayment(Guid orderId, string paymetnDescription)
+        {
+            ClientOrder? clientOrder = await _context.msg_ClientOrders.FirstOrDefaultAsync(o => o.Id == orderId);
+            if (clientOrder != null)
+            {
+                clientOrder.PaymentDescription = paymetnDescription;
+              
+                _context.msg_ClientOrders.Update(clientOrder);
+
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            else
+            {
+                throw new Exception("Bu Siparişe Ait Kayıt Bulunamadı");
+            }
+
+        }
+
+        public async Task<bool> AddCustomerAddress(AddCustomerAddress_CM request)
+        {
+
+            string content = Newtonsoft.Json.JsonConvert.SerializeObject(request);
+
+            var response = await _gs.PostNebimAsync(content, "MÜŞTERİ");
+            Console.WriteLine(response.ToString());
+            return true;
+        }
     }
 }
 

@@ -1,7 +1,9 @@
 ﻿using GoogleAPI.Domain.Models.Filter;
 using GoogleAPI.Domain.Models.NEBIM.Customer;
+using GoogleAPI.Domain.Models.NEBIM.Customer.CreateCustomerModel;
 using GoogleAPI.Domain.Models.NEBIM.Invoice;
 using GoogleAPI.Domain.Models.NEBIM.Order;
+using GoogleAPI.Domain.Models.NEBIM.Order.CreateOrderModel;
 using GoogleAPI.Domain.Models.NEBIM.Product;
 using GoogleAPI.Domain.Models.NEBIM.Shelf;
 using GoogleAPI.Domain.Models.NEBIM.Warehouse;
@@ -48,12 +50,12 @@ namespace GoogleAPI.API.Controllers
         }
 
         #region SIPARIS-------------------------------------------------------------------
-        [HttpGet("get-sale-orders/{type}")]
-        public async Task<IActionResult> GetSaleOrders(int type) // 1-> toplanabilir 2->toplanamaz
+        [HttpGet("get-sale-orders/{type}/{invoiceStatus}")]
+        public async Task<IActionResult> GetSaleOrders(int type, int invoiceStatus) // 1-> toplanabilir 2->toplanamaz
         {
             try
             {
-                List<SaleOrderModel> saleOrderModel = await _os.GetSaleOrders(type);
+                List<SaleOrderModel> saleOrderModel = await _os.GetSaleOrders( type,  invoiceStatus);
 
                 return Ok(saleOrderModel);
             }
@@ -1458,14 +1460,134 @@ namespace GoogleAPI.API.Controllers
 
         #region SATIŞ
 
-        [HttpPost("get-customers")]
+        [HttpPost("get-customer-list-2")]
   
-        public async Task<IActionResult> GetCustomers( )
+        public async Task<ActionResult<List<CustomerList_VM>>> GetCustomerList_2(GetCustomerList_CM request)
         {
 
+            List<CustomerList_VM> orderList = await _os.GetCustomerList_2(request);
+            return Ok(orderList);
+        }
+            
+        [HttpPost("get-customer-address")]
+        public async Task<ActionResult<List<CustomerAddress_VM>>> GetCustomerAddress(GetCustomerAddress_CM request)
+        {
+
+            List<CustomerAddress_VM> orderList = await _os.GetCustomerAddress(request);
+            return Ok(orderList);
+        }
+
+        [HttpPost("create-customer")]
+        public async Task<ActionResult> GetCustomerAddress(CreateCustomer_CM request)
+        {
+
+            var response = await _os.SendCustomerToNebim(request);
+            return Ok(response);
+        }
+        [HttpPost("create-order")]
+        public async Task<ActionResult> GetOrder(NebimOrder order)
+        {
+
+            var response = await _os.CreateOrder(order);
+            return Ok(response);
+        }
+
+        [HttpGet("get-client-order/{id}")]
+        public async Task<ActionResult<ClientOrder_DTO>> GetClientOrder(Guid id)
+        {
+
+            var response = await _os.GetClientOrder(id);
+            return Ok(response);
+        }
+
+
+        [HttpPost("create-client-order")]
+        public async Task<ActionResult> CreateClientOrder(ClientOrder request)
+        {
+
+            var response = await _os.CreateClientOrder(request);
+            return Ok(response);
+        }
+
+        [HttpPost("create-client-order-basket-item")]
+        public async Task<ActionResult> CreateClientOrderBasketItem(ClientOrderBasketItem request)
+        {
+
+            var response = await _os.CreateClientOrderBasketItem(request);
+            return Ok(response);
+        }
+
+        [HttpGet("update-client-order-basket-item/{id}/{lineId}/{quantity}/{price}")]
+        public async Task<ActionResult<ClientOrder_DTO>> UpdateClientOrderBasketItem(Guid id, Guid lineId,int quantity, decimal price)
+        {
+
+            var response = await _os.UpdateClientOrderBasketItem(id, lineId,quantity,price);
+            return Ok(response);
+        }
+
+        [HttpGet("update-client-order-payment/{orderId}/{paymentDescription}")]
+        public async Task<ActionResult<ClientOrder_DTO>> UpdateClientOrderPayment(Guid orderId, string paymentDescription)
+        {
+
+            var response = await _os.UpdateClientOrderPayment(orderId,paymentDescription);
+            return Ok(response);
+        }
+
+        [HttpPost("edit-client-customer")]
+        public async Task<ActionResult> CreateClientCustomer(ClientCustomer request)
+        {
+
+            var response = await _os.EditClientCustomer(request);
+            return Ok(response);
+        }
+        [HttpGet("get-client-customer")]
+        public async Task<ActionResult<ClientOrder_DTO>> GetClientCustomer()
+        {
+
+            var response = await _os.GetClientCustomer();
+            return Ok(response);
+        }
+        [HttpGet("get-order-detail/{orderNumber}")]
+        public async Task<ActionResult<OrderDetail>> GetOrderDetail(string orderNumber)
+        {
+
+            string query = $"exec msg_GetOrderDetail '{orderNumber}' ";
+            OrderDetail_Model? OrderDetail= _context.OrderDetail_Model.FromSqlRaw(query).AsEnumerable().FirstOrDefault();
+            if (OrderDetail != null)
+            {
+                OrderDetail orderDetail = new OrderDetail
+                {
+                    OrderDate =Convert.ToDateTime( OrderDetail.OrderDate),  
+                    TotalPrice  = OrderDetail.TotalPrice,
+                    SalespersonCode = OrderDetail.SalespersonCode,
+                    OrderNumber = OrderDetail.OrderNumber,
+                    Description = OrderDetail.Description,
+                    CurrAccCode = OrderDetail.CurrAccCode,
+                    Phone = OrderDetail.Phone,
+                    Mail = OrderDetail.Mail,
+                    Customer = OrderDetail.Customer,
+                    City = OrderDetail.City,
+                    District = OrderDetail.District,
+                    Address = OrderDetail.Address,
+                    Products = JsonConvert.DeserializeObject<List<BasketProductSummary>>(
+                              OrderDetail.Products
+                            )
+                };
+                return Ok(orderDetail);
+
+            }
 
             return Ok();
         }
+
+        [HttpPost("add-customer-address")]
+        public async Task<ActionResult> AddCustomerAddress(AddCustomerAddress_CM request)
+        {
+
+            var response = await _os.AddCustomerAddress(request);
+            return Ok(response);
+        }
+
 
         #endregion
 

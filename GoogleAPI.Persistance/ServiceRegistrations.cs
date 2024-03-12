@@ -1,10 +1,17 @@
 ﻿using GoogleAPI.Persistance;
 using GoogleAPI.Persistance.Concreates;
+using GoogleAPI.Persistance.Concreates.Services.Helper;
+using GoogleAPI.Persistance.Concreates.Services.Mail;
+using GoogleAPI.Persistance.Concreates.User_Token;
 using GoogleAPI.Persistance.Concretes;
 using GoogleAPI.Persistance.Contexts;
+using GoogleAPI.Persistance.Repositories.UserAndCommunication;
 using GooleAPI.Application.Abstractions;
+using GooleAPI.Application.Abstractions.IServices.IHelper;
+using GooleAPI.Application.Abstractions.IServices.IMail;
 using GooleAPI.Application.IRepositories;
 using GooleAPI.Application.IRepositories.Log;
+using GooleAPI.Application.IRepositories.UserAndCommunication;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -35,6 +42,9 @@ namespace GooleAPI.Infrastructure
 
             services.AddScoped<ILogReadRepository, LogReadRepository>();
             services.AddScoped<ILogWriteRepository, LogWriteRepository>();
+            services.AddScoped<IUserWriteRepository, UserWriteRepository>();
+            services.AddScoped<IUserReadRepository, UserReadRepository>();
+
             services.AddScoped<IOrderService, OrderService>();
             services.AddScoped<ILogService, LogService>();
 
@@ -43,6 +53,14 @@ namespace GooleAPI.Infrastructure
             services.AddScoped<ITransferService, TransferService>();
             services.AddScoped<ICountService, CountService>();
             services.AddScoped<IProductService, ProductService>();
+            services.AddScoped<IFileUploadService, FileUploadService>();
+            services.AddScoped<ITokenService, TokenService>();
+            services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IMailService, MailService>();
+            services.AddScoped<IHelperService, HelperService>();
+            services.AddScoped<IPaymentService, PaymentService>();
+            services.AddScoped<IMNGCargoService, MngCargoService>();
+
 
 
         }

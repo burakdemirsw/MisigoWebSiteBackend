@@ -29,18 +29,23 @@ namespace GoogleAPI.Persistance.Repositories
         public async Task<bool> AddRangeAsync(List<T> datas)
         {
             await Table.AddRangeAsync(datas);
+            await SaveAsync2(datas);
             return true;
         }
 
         public bool Remove(T model)
         {
             EntityEntry<T> entityEntry = Table.Remove(model);
-            return entityEntry.State == EntityState.Deleted;
+            Boolean state = entityEntry.State == EntityState.Deleted;
+            SaveAsync(model);
+
+            return state;
         }
 
-        public bool RemoveRange(List<T> datas)
+        public async Task<bool> RemoveRange(List<T> datas)
         {
             Table.RemoveRange(datas);
+            await SaveAsync2(datas);
             return true;
         }
 
@@ -51,14 +56,22 @@ namespace GoogleAPI.Persistance.Repositories
             return Remove(model);
         }
 
+        public async Task UpdateRange(List<T> models)
+        {
+            Table.UpdateRange(models);
+            await SaveAsync2(models);
+        }
+
         public async Task<bool> Update(T model)
         {
             EntityEntry<T> entityEntry = Table.Update(model);
-            entityEntry.State = EntityState.Modified;
+            Boolean state = entityEntry.State == EntityState.Modified;
             await SaveAsync(model);
-            return entityEntry.State == EntityState.Modified;
+            return state;
         }
 
         public async Task<int> SaveAsync(T model) => await _context.SaveChangesAsync();
+
+        public async Task<int> SaveAsync2(List<T> models) => await _context.SaveChangesAsync();
     }
 }

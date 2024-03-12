@@ -1,9 +1,40 @@
+using GoogleAPI.API.Extentions;
+using GoogleAPI.Persistance.Concreates;
 using GooleAPI.Infrastructure;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Security.Claims;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Servisler ekleniyor.
 builder.Services.AddPersistanceServices();
+
+
+builder.Services
+    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(
+        "Admin",
+        options =>
+        {
+            options.TokenValidationParameters = new()
+            {
+                ValidateAudience = true,
+                ValidateIssuer = true,
+                ValidateLifetime = true,
+                ValidateIssuerSigningKey = true,
+                ValidAudience = builder.Configuration["Token:Audience"],
+                ValidIssuer = builder.Configuration["Token:Issuer"],
+                IssuerSigningKey = new SymmetricSecurityKey(
+                    Encoding.UTF8.GetBytes(builder.Configuration["Token:SecurityKey"])
+                ),
+                LifetimeValidator = (notBefore, expires, securityToken, validationParameters) =>
+                    expires != null ? expires > DateTime.UtcNow : false,
+                NameClaimType = ClaimTypes.Name
+            };
+        }
+    );
 
 // CORS (Cross-Origin Resource Sharing) ayarlarý yapýlýyor.
 builder.Services.AddCors(options =>
@@ -51,6 +82,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+app.ConfigureExceptionHandler<Program>();
 
 app.UseCors(); // CORS özelliðini etkinleþtiriyoruz.
 app.UseHttpsRedirection(); // HTTPS'e yönlendirme yapýlýyor.

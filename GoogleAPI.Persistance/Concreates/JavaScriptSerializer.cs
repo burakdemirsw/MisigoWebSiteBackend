@@ -1,0 +1,4 @@
+﻿namespace GoogleAPI.Persistance.Concreates
+{
+   
+}

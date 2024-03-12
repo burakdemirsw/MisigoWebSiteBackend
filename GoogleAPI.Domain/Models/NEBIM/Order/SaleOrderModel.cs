@@ -2,7 +2,7 @@
 {
     public class SaleOrderModel
     {
-        public DateTime OrderDate { get; set; }
+        public DateTime? OrderDate { get; set; }
         public string? OrderNumber { get; set; }
         public string? CurrAccCode { get; set; }
         public string? CurrAccDescription { get; set; }
@@ -13,7 +13,7 @@
         public int? Status { get; set; }
         public int? RemainingQty { get; set; }
         public string? Description { get; set; }
-        public int InvoiceStatus { get; set; }
+        public int? InvoiceStatus { get; set; }
 
 
     }

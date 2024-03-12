@@ -156,6 +156,51 @@ namespace GoogleAPI.Persistance.Concreates
 
         }
 
+        public async Task LogSystemError(string request, string exceptioneader, string? exceptionText)
+        {
+            Log log = new Log();
+            log.CreatedDate = DateTime.Now;
+            log.MessageHeader = "System";
+            log.Level = "ERROR";
+            log.ExceptionText = exceptioneader;
+            log.LogEvent = exceptionText;
+            log.UserName = "ADMIN";
+            log.Request = request;
+
+            await _lw.AddAsync(log);
+
+
+        }
+        public async Task LogSystemWarn(string exceptioneader, string? exceptionText)
+        {
+            Log log = new Log();
+            log.CreatedDate = DateTime.Now;
+            log.MessageHeader = "System";
+            log.Level = "WARNING";
+            log.ExceptionText = exceptioneader;
+            log.LogEvent = exceptionText;
+            log.UserName = "ADMIN";
+
+            await _lw.AddAsync(log);
+
+
+        }
+
+        public async Task LogSystemSuccess(string exceptioneader, string? exceptionText)
+        {
+            Log log = new Log();
+            log.CreatedDate = DateTime.Now;
+            log.MessageHeader = "System";
+            log.Level = "SUCCESS";
+            log.ExceptionText = exceptioneader;
+            log.LogEvent = exceptionText;
+            log.UserName = "ADMIN";
+
+            await _lw.AddAsync(log);
+
+        }
+
+
 
         public async Task<List<Log_VM>> GetLogs(LogFilterModel model)
         {
