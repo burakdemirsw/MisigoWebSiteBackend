@@ -14,6 +14,7 @@ using GoogleAPI.Domain.Models.NEBIM.Product;
 using GoogleAPI.Domain.Models.NEBIM.Shelf;
 using GoogleAPI.Domain.Models.NEBIM.Warehouse;
 using GoogleAPI.Domain.Models.Payment;
+using GoogleAPI.Domain.Models.Raport;
 using Microsoft.EntityFrameworkCore;
 
 
@@ -77,11 +78,21 @@ namespace GoogleAPI.Persistance.Contexts
             modelBuilder.Entity<CheckPostalAddressModel>().HasNoKey();
             modelBuilder.Entity<Address_VM>().HasNoKey();
             modelBuilder.Entity<OrderDetail_Model>().HasNoKey();
+            modelBuilder.Entity<Raport_1>().HasNoKey();
+            modelBuilder.Entity<Raport_2>().HasNoKey();
+            modelBuilder.Entity<Raport_3>().HasNoKey();
+            modelBuilder.Entity<Raport_4>().HasNoKey();
 
 
 
         }
-        //OrderDetail_Model
+        //OrderDetail_Model Raport_4
+        public DbSet<CargoBarcode>? msg_CargoBarcodes { get; set; }
+
+        public DbSet<Raport_1>? Raport_1 { get; set; }
+        public DbSet<Raport_2>? Raport_2 { get; set; }
+        public DbSet<Raport_3>? Raport_3{ get; set; }
+        public DbSet<Raport_4>? Raport_4 { get; set; }
 
         public DbSet<OrderDetail_Model>? OrderDetail_Model { get; set; }
 

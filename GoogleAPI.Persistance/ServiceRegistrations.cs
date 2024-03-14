@@ -44,6 +44,8 @@ namespace GooleAPI.Infrastructure
             services.AddScoped<ILogWriteRepository, LogWriteRepository>();
             services.AddScoped<IUserWriteRepository, UserWriteRepository>();
             services.AddScoped<IUserReadRepository, UserReadRepository>();
+            services.AddScoped<ICargoBarcodeReadRepository, CargoBarcodeReadRepository>();
+            services.AddScoped<ICargoBarcodeWriteRepository, CargoBarcodeWriteRepository>();
 
             services.AddScoped<IOrderService, OrderService>();
             services.AddScoped<ILogService, LogService>();

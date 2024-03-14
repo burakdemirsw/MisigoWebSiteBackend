@@ -7,6 +7,7 @@ using GoogleAPI.Domain.Models.NEBIM.Order.CreateOrderModel;
 using GoogleAPI.Domain.Models.NEBIM.Product;
 using GoogleAPI.Domain.Models.NEBIM.Shelf;
 using GoogleAPI.Domain.Models.NEBIM.Warehouse;
+using GoogleAPI.Domain.Models.Raport;
 using GoogleAPI.Persistance.Concreates;
 using GoogleAPI.Persistance.Contexts;
 using GooleAPI.Application.Abstractions;
@@ -55,7 +56,7 @@ namespace GoogleAPI.API.Controllers
         {
             try
             {
-                List<SaleOrderModel> saleOrderModel = await _os.GetSaleOrders( type,  invoiceStatus);
+                    List<SaleOrderModel> saleOrderModel = await _os.GetSaleOrders( type,  invoiceStatus);
 
                 return Ok(saleOrderModel);
             }
@@ -1016,7 +1017,7 @@ namespace GoogleAPI.API.Controllers
         {
             try
             {
-                string query = $"Get_MSGEksikUrun '{model.ShelfNo}','','{model.Barcode}','{model.ItemCode}','{model.ColorCode}','{model.ItemDim1Code}','{model.Quantity}','','','',''";
+                string query = $"Get_MSGEksikUrun '{model.ShelfNo}','','{model.Barcode}','{model.ItemCode}','{model.ColorCode}','{model.ItemDim1Code}','{model.Quantity}','','','','','{model.LineId}'";
 
                 DestroyItem_Response? response = _context.DestroyItem_Response?.FromSqlRaw(query).ToList().First();
                 if (response != null)
@@ -1322,6 +1323,7 @@ namespace GoogleAPI.API.Controllers
 
 
 
+
                     using (MemoryStream stream = new MemoryStream(imageBytes))
                     {
                         // MemoryStream'den Bitmap oluştur
@@ -1540,11 +1542,11 @@ namespace GoogleAPI.API.Controllers
             var response = await _os.EditClientCustomer(request);
             return Ok(response);
         }
-        [HttpGet("get-client-customer")]
-        public async Task<ActionResult<ClientOrder_DTO>> GetClientCustomer()
+        [HttpGet("get-client-customer/{addedSalesPersonCode}")]
+        public async Task<ActionResult<ClientOrder_DTO>> GetClientCustomer(string addedSalesPersonCode)
         {
 
-            var response = await _os.GetClientCustomer();
+            var response = await _os.GetClientCustomer(addedSalesPersonCode);
             return Ok(response);
         }
         [HttpGet("get-order-detail/{orderNumber}")]
@@ -1591,5 +1593,28 @@ namespace GoogleAPI.API.Controllers
 
         #endregion
 
+        #region RAPORTS
+        [HttpGet("get-raports/{day}")]
+        public async Task<ActionResult<Raport_CR>> GetOrderDetail(int day)
+        {
+            Raport_CR response = new Raport_CR();
+            var query_1 = $"exec msg_Raport_1 '{day}' ";
+
+            Raport_1? raport_1 = _context.Raport_1.FromSqlRaw(query_1).AsEnumerable().FirstOrDefault();
+            response.Raport_1 = raport_1;
+            var query_2 = $"exec msg_Raport_2  ";
+            List<Raport_2>? raport_2 = _context.Raport_2.FromSqlRaw(query_2).AsEnumerable().ToList();
+            response.Raport_2 = raport_2;
+            var query_3 = $"exec msg_Raport_3  ";
+            List<Raport_3>? raport_3 = _context.Raport_3.FromSqlRaw(query_3).AsEnumerable().ToList();
+            response.Raport_3 = raport_3;
+            var query_4 = $"exec msg_Raport_4 '{day}' ";
+            List<Raport_4>? raport_4 = _context.Raport_4.FromSqlRaw(query_4).AsEnumerable().ToList();
+            response.Raport_4 = raport_4;
+
+
+            return Ok(response);
+        }
+        #endregion
     }
 }

@@ -40,7 +40,7 @@ namespace GooleAPI.Application.Abstractions
         Task<bool> UpdateClientOrderBasketItem(Guid orderId, Guid lineId, int quantity, decimal price);
         Task<bool> UpdateClientOrderPayment(Guid orderId, string paymetnDescription);
         Task<bool> EditClientCustomer(ClientCustomer request);
-        Task<List<ClientCustomer>> GetClientCustomer( );
+        Task<List<ClientCustomer>> GetClientCustomer(string AddedSalesPersonCode);
         Task<bool> AddCustomerAddress(AddCustomerAddress_CM request);
     }
 

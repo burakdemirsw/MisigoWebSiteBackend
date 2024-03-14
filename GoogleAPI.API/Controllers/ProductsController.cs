@@ -60,7 +60,33 @@ namespace GoogleAPI.API.Controllers
             }
         }
 
+        [HttpPost("SearchProduct2")]
+        public async Task<IActionResult> SearchProduct2(BarcodeSearch_RM model)
+        {
+            try
+            {
+                if (model.Barcode != null)
+                {
+                    List<ProductList_VM> products = await _context.ProductListModel.FromSqlRaw($" [dbo].[Get_MSRAFSearch3] '{model.Barcode}'").ToListAsync();
 
+                    return Ok(products);
+                }
+                else
+                {
+                    return BadRequest("Barkod Boş Geldi");
+                }
+
+
+
+
+
+            }
+            catch (Exception ex)
+            {
+
+                return BadRequest(ErrorTextBase + ex.Message);
+            }
+        }
 
 
         [HttpPost("AddQr")]

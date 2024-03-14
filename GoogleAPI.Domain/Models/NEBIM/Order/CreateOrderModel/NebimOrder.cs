@@ -13,6 +13,7 @@ namespace GoogleAPI.Domain.Models.NEBIM.Order.CreateOrderModel
         //public string? StoreCode { get; set; } // OFİS DEPO SEÇİMİ EN ÜSTTE EKLENCEK
         public string? WarehouseCode { get; set; }  // OFİS DEPO SEÇİMİ EN ÜSTTE EKLENCEK
         public string? DeliveryCompanyCode { get; set; } // KRG
+        public string? TaxTypeCode { get; set; } // KRG
         public int? ShipmentMethodCode { get; set; } //?
         public int? PosTerminalID { get; set; } // ??
         public bool IsCompleted { get; set; } //true

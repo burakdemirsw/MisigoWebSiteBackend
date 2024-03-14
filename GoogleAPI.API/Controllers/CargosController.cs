@@ -14,17 +14,17 @@ namespace GoogleAPI.API.Controllers
     public class CargosController : ControllerBase
     {
         private readonly IMNGCargoService _mngCargoService;
-        public CargosController( IMNGCargoService mngCargoService)
+        public CargosController(IMNGCargoService mngCargoService)
         {
-         
+
             _mngCargoService = mngCargoService;
-           
+
         }
 
         [HttpPost("create-cargo")]
-        public async Task<IActionResult> CreateCargo(CreatePackage_MNG_Request request)
-        {        
-            var response = await _mngCargoService.CreateCargo(request);
+        public async Task<IActionResult> CreateCargo(CreatePackage_MNG_Request Order)
+        {
+            var response = await _mngCargoService.CreateCargo(Order);
 
             return Ok(response);
         }
@@ -44,6 +44,14 @@ namespace GoogleAPI.API.Controllers
             var _response = await _mngCargoService.CreateBarcode(request);
 
             return Ok(_response);
+        }
+        [HttpGet("print-barcode2")]
+        public async Task<IActionResult> PrintBarcode( )
+        {
+
+            await _mngCargoService.ConvertAndPrintBarcode(null);
+
+            return Ok();
         }
     }
 

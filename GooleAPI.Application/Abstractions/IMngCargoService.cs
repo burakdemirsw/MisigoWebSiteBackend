@@ -14,7 +14,8 @@ namespace GooleAPI.Application.Abstractions
         Task<CreateTokenResponse_MNG> CreateToken( );
         Task<CreatePackage_MNG_RR> CreateCargo(CreatePackage_MNG_Request Order); //CreateOrder
         Task<CreateBarcode_MNG_Response> CreateBarcode(CreateBarcode_MNG_Request Request);//CreateBarcode
-
+        Task<bool> PrintBarcode2(string zplCode);
+        Task ConvertAndPrintBarcode(string zpl);
         Task<bool> DeleteCargo( );
         //void UpdateCargo( );
         //void GetCargoById( );

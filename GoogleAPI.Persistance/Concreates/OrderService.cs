@@ -319,7 +319,7 @@ namespace GoogleAPI.Persistance.Concretes
             }
             if (!String.IsNullOrEmpty(request.CurrAccCode))
             {
-                query += $" CurrAccCode like '%{request.CurrAccCode}%'";
+                query += $" CurrAccCode like '%{request.CurrAccCode}%' or CurrAccDescription like '%{request.CurrAccCode}%'";
             }
             if (String.IsNullOrEmpty(request.Mail) && String.IsNullOrEmpty(request.Phone) && String.IsNullOrEmpty(request.CurrAccCode))
             {
@@ -514,10 +514,10 @@ namespace GoogleAPI.Persistance.Concretes
         
         }
 
-        public async Task<List<ClientCustomer>> GetClientCustomer()
+        public async Task<List<ClientCustomer>> GetClientCustomer(string AddedSalesPersonCode)
         {
 
-            List<ClientCustomer>? clientCustomers = await _context.msg_ClientCustomers.ToListAsync();
+            List<ClientCustomer>? clientCustomers = await _context.msg_ClientCustomers.Where(c=>c.AddedSellerCode == AddedSalesPersonCode).ToListAsync();
 
 
             return clientCustomers;
@@ -531,6 +531,7 @@ namespace GoogleAPI.Persistance.Concretes
             ClientCustomer? clientCustomer = await _context.msg_ClientCustomers.FirstOrDefaultAsync(o => o.Id == request.Id);
             if (clientCustomer != null) //güncelle
             {
+                clientCustomer.AddedSellerCode = request.AddedSellerCode;
                 clientCustomer.Description = request.Description;
                 clientCustomer.CurrAccCode = request.CurrAccCode;
                 clientCustomer.BussinesCardPhotoUrl = request.BussinesCardPhotoUrl;

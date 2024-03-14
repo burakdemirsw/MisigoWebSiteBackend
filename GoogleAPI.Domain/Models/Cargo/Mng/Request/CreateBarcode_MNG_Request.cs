@@ -1,4 +1,5 @@
 ﻿using GoogleAPI.Domain.Models.Cargo.Mng.Order;
+using GoogleAPI.Domain.Models.Cargo.Mng.Response;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -16,6 +17,7 @@ namespace GoogleAPI.Domain.Models.Cargo.Mng.Request
         public int IsCOD { get; set; }
         public int CodAmount { get; set; }
         public int PackagingType { get; set; }
+        public CreatePackage_MNG_RR Response { get; set; }
         public List<OrderPieceList_MNG> OrderPieceList { get; set; }
     }
 

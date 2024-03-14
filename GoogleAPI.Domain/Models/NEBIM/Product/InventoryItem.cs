@@ -9,7 +9,8 @@
         public int? Quantity { get; set; }
         public int? TransferQty { get; set; }
         public string? Barcode { get; set; }
-
+        public int? UdStock { get; set; }
+        public int? MdStock { get; set; }
 
     }
 }
