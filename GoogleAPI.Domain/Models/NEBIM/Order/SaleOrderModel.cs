@@ -14,6 +14,7 @@
         public int? RemainingQty { get; set; }
         public string? Description { get; set; }
         public int? InvoiceStatus { get; set; }
+        public bool? IsShipped { get; set; }
 
 
     }

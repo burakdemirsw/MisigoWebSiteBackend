@@ -33,7 +33,7 @@ namespace GooleAPI.Application.Abstractions
         Task<List<CustomerList_VM>> GetCustomerList_2(GetCustomerList_CM request);
         Task<List<CustomerAddress_VM>> GetCustomerAddress(GetCustomerAddress_CM request);
         Task<CreateCustomer_ResponseModel> SendCustomerToNebim(CreateCustomer_CM order);
-        Task<bool> CreateOrder(GoogleAPI.Domain.Models.NEBIM.Order.CreateOrderModel.NebimOrder Orders);
+        Task<NebimOrder_RM> CreateOrder(GoogleAPI.Domain.Models.NEBIM.Order.CreateOrderModel.NebimOrder Orders);
         Task<bool> CreateClientOrder(ClientOrder request);
         Task<bool> CreateClientOrderBasketItem(ClientOrderBasketItem request);
         Task<ClientOrder_DTO> GetClientOrder(Guid id);
@@ -42,6 +42,9 @@ namespace GooleAPI.Application.Abstractions
         Task<bool> EditClientCustomer(ClientCustomer request);
         Task<List<ClientCustomer>> GetClientCustomer(string AddedSalesPersonCode);
         Task<bool> AddCustomerAddress(AddCustomerAddress_CM request);
+        Task<bool> UpdateClientOrderNebimInfos(string orderNo, string orderNumber, bool isCompleted);
+        Task<bool> DeleteClientOrder(Guid Id);
+        Task<bool> DeleteClientOrderBasketItem(Guid orderId, Guid lineId);
     }
 
 }

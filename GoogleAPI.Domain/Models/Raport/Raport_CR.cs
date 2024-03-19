@@ -19,31 +19,31 @@ namespace GoogleAPI.Domain.Models.Raport
     public class Raport_1 
 
     {
-        public int WSOrderCount { get; set; }
-        public int WSOrderRevenue { get; set; }
-        public int CustomerCount { get; set; }
+        public int? WSOrderCount { get; set; }
+        public int? WSOrderRevenue { get; set; }
+        public int? CustomerCount { get; set; }
 
 
     }
     public class Raport_2
     {
-        public string Day { get; set; }
-        public int OrderCount { get; set; }
+        public string? Day { get; set; }
+        public int? OrderCount { get; set; }
 
     }
     public class Raport_3
     {
-        public string Day { get; set; }
-        public int OrderRevenue { get; set; }
+        public string? Day { get; set; }
+        public int? OrderRevenue { get; set; }
 
     }
     public class Raport_4
     {
-        public string PhotoUrl { get; set; }
-        public string Product { get; set; }
-        public decimal Price { get; set; }
-        public int SaleCount { get; set; }
-        public decimal Revenue { get; set; }
+        public string? PhotoUrl { get; set; }
+        public string? Product { get; set; }
+        public decimal? Price { get; set; }
+        public int? SaleCount { get; set; }
+        public decimal? Revenue { get; set; }
 
     }
 }

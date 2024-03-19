@@ -39,7 +39,11 @@ namespace GoogleAPI.Domain.Models.NEBIM.Order.CreateOrderModel
         public string? OrderNo { get; set; }
         public DateTime? CreatedDate { get; set; }
         public DateTime? UpdatedDate { get; set; }
+        public DateTime? PaymentDate { get; set; }
+        public bool? IsCompleted { get; set; }
+        public string? OrderNumber { get; set; }
         public string? PaymentDescription { get; set; }
+
     }
     public class ClientOrderBasketItem
     {

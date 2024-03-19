@@ -1,5 +1,7 @@
-﻿using GoogleAPI.Domain.Models.Cargo.Mng.Request;
+﻿using GoogleAPI.Domain.Entities;
+using GoogleAPI.Domain.Models.Cargo.Mng.Request;
 using GoogleAPI.Domain.Models.Cargo.Mng.Response;
+using GoogleAPI.Domain.Models.Cargo.Response;
 using GoogleAPI.Persistance.Concreates;
 using GoogleAPI.Persistance.Contexts;
 using GooleAPI.Application.Abstractions;
@@ -22,7 +24,7 @@ namespace GoogleAPI.API.Controllers
         }
 
         [HttpPost("create-cargo")]
-        public async Task<IActionResult> CreateCargo(CreatePackage_MNG_Request Order)
+        public async Task<IActionResult> CreateCargo(CreatePackage_MNG_RM Order)
         {
             var response = await _mngCargoService.CreateCargo(Order);
 
@@ -37,24 +39,55 @@ namespace GoogleAPI.API.Controllers
             return Ok(response);
         }
 
-        [HttpPost("print-barcode")]
-        public async Task<IActionResult> PrintBarcode(CreateBarcode_MNG_Request request)
+
+        [HttpGet("get-package-status/{shipmentId}")]
+        public async Task<ActionResult<List<GetPackageStatus_MNG_Response>>> GetPackageStatus(string shipmentId )
+        {
+            var response = await _mngCargoService.GetPackageStatus(shipmentId);
+
+            return Ok(response);
+        }
+
+
+        [HttpGet("get-shipped-cargos")]
+        public async Task<ActionResult<List<CargoBarcode_VM>>> GetShippedCargos( )
+        {
+            var response = await _mngCargoService.GetShippedCargos();
+
+            return Ok(response);
+        }
+
+        [HttpPost("delete-shipped-cargo")]
+        public async Task<ActionResult<List<CargoBarcode_VM>>> GetShippedCargo(DeletePackage_MNG_Request request )
+        {
+            var response = await _mngCargoService.DeleteShippedCargo(request);
+
+            return Ok(response);
+        }
+
+
+        [HttpGet("create-barcode/{referenceId}")]
+        public async Task<IActionResult> PrintBarcode(string referenceId)
         {
 
-            var _response = await _mngCargoService.CreateBarcode(request);
+            var _response = await _mngCargoService.CreateBarcode(referenceId);
 
             return Ok(_response);
         }
-        [HttpGet("print-barcode2")]
-        public async Task<IActionResult> PrintBarcode( )
+        [HttpGet("print-single-barcode")]
+
+        public async Task<IActionResult> PrintBarcode(PrintSingleBarcode_MNG_Request request)
         {
 
-            await _mngCargoService.ConvertAndPrintBarcode(null);
+                var _response = await _mngCargoService.PrintSingleBarcode(request.ZplBarcode);
 
-            return Ok();
+            return Ok(_response);
         }
     }
-
+    public class PrintSingleBarcode_MNG_Request
+    {
+        public string? ZplBarcode { get; set; }
+    }
 
 }
 

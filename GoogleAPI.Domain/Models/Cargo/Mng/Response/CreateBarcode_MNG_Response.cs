@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace GoogleAPI.Domain.Models.Cargo.Response
@@ -28,17 +29,6 @@ namespace GoogleAPI.Domain.Models.Cargo.Response
     }
 
 
-    public class Barcode_MNG
-    {
-        [JsonProperty("pieceNumber")]
-        public int? PieceNumber { get; set; }
-
-        [JsonProperty("value")]
-        public string Value { get; set; }
-
-        [JsonProperty("barcode")]
-        public string Barcode { get; set; }
-    }
 
 
 }

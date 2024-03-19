@@ -1217,8 +1217,7 @@ namespace GoogleAPI.API.Controllers
         [HttpGet("InventoryItems/{type}")]
         public async Task<IActionResult> GetInventoryItem(string type)
         {
-            try
-            {
+           
                 List<InventoryItemModel> list = await _ts.GetInventoryItem(type);
 
                 if (list.Count == 0)
@@ -1230,12 +1229,7 @@ namespace GoogleAPI.API.Controllers
                     return Ok(list);
                 }
 
-            }
-            catch (Exception)
-            {
-
-                throw;
-            }
+            
         }
 
         [HttpGet("GetInventoryFromOrderNumber/{OrderNo}")]
@@ -1534,7 +1528,7 @@ namespace GoogleAPI.API.Controllers
             var response = await _os.UpdateClientOrderPayment(orderId,paymentDescription);
             return Ok(response);
         }
-
+       
         [HttpPost("edit-client-customer")]
         public async Task<ActionResult> CreateClientCustomer(ClientCustomer request)
         {
@@ -1547,6 +1541,21 @@ namespace GoogleAPI.API.Controllers
         {
 
             var response = await _os.GetClientCustomer(addedSalesPersonCode);
+            return Ok(response);
+        }
+
+        [HttpGet("delete-client-order/{id}")]
+        public async Task<ActionResult<ClientOrder_DTO>> DeleteClientOrder(Guid id)
+        {
+
+            var response = await _os.DeleteClientOrder(id);
+            return Ok(response);
+        }
+        [HttpGet("delete-client-order-basket-item/{orderId}/{lineId}")]
+        public async Task<ActionResult<ClientOrder_DTO>> DeleteClientOrder(Guid orderId, Guid lineId)
+        {
+
+            var response = await _os.DeleteClientOrderBasketItem(orderId,lineId);
             return Ok(response);
         }
         [HttpGet("get-order-detail/{orderNumber}")]

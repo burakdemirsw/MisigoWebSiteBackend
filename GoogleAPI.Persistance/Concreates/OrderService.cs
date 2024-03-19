@@ -445,14 +445,23 @@ namespace GoogleAPI.Persistance.Concretes
 
   
 
-        public async  Task<bool> CreateOrder(NebimOrder Order)
+        public async  Task<NebimOrder_RM> CreateOrder(NebimOrder Order)
         {
 
             string content = Newtonsoft.Json.JsonConvert.SerializeObject(Order);
 
             var response = await _gs.PostNebimAsync(content, "SİPARİŞ");
-            Console.WriteLine(response.ToString());
-            return true;
+            JObject jsonResponse = JObject.Parse(response);
+
+            string OrderNumber = jsonResponse[
+                 "OrderNumber"
+             ].ToString();
+            await UpdateClientOrderNebimInfos(Order.InternalDescription,OrderNumber,true);
+            NebimOrder_RM _response = new NebimOrder_RM();
+            _response.OrderNumber = OrderNumber;
+            _response.Status = true;
+
+            return _response;
         }
 
         public async Task<ClientOrder_DTO> GetClientOrder(Guid id)
@@ -480,7 +489,44 @@ namespace GoogleAPI.Persistance.Concretes
             }
                
         }
+        public async Task<bool> DeleteClientOrder(Guid Id)
+        {
+            ClientOrder? clientOrder = await _context.msg_ClientOrders.FirstOrDefaultAsync(o => o.Id == Id);
+            if (clientOrder != null)
+            {
+                var response =  _context.msg_ClientOrders.Remove(clientOrder);
+                Boolean state = response.State == EntityState.Deleted;
+                await _context.SaveChangesAsync();
 
+                List<ClientOrderBasketItem>? clientOrderBasketItems =  _context.msg_ClientOrderBasketItems.Where(o => o.OrderId == Id).ToList();
+                
+                if (clientOrderBasketItems.Count>0)
+                {
+
+                    foreach (var item in clientOrderBasketItems)
+                    {
+                        var _response = _context.msg_ClientOrderBasketItems.Remove(item);
+                        Boolean _state = response.State == EntityState.Deleted;
+                        await _context.SaveChangesAsync();
+
+                    }
+
+
+                    return state;
+                }
+                else
+                {
+                    return false;
+                }
+                
+
+            }
+            else
+            {
+                return false;
+            }
+
+        }
         public async Task<bool> CreateClientOrderBasketItem(ClientOrderBasketItem request)
         {
           
@@ -556,7 +602,7 @@ namespace GoogleAPI.Persistance.Concretes
 
         public async Task<bool> DeleteClientOrderBasketItem(Guid orderId , Guid lineId )
         {
-            ClientOrderBasketItem? clientOrderBasketItem = await _context.msg_ClientOrderBasketItems.FirstOrDefaultAsync(o => o.Id == orderId && o.LineId ==lineId);
+            ClientOrderBasketItem? clientOrderBasketItem = await _context.msg_ClientOrderBasketItems.FirstOrDefaultAsync(o => o.OrderId == orderId && o.LineId ==lineId);
             if (clientOrderBasketItem != null)
             {
                   _context.msg_ClientOrderBasketItems.Remove(clientOrderBasketItem);
@@ -597,7 +643,7 @@ namespace GoogleAPI.Persistance.Concretes
                 clientOrder.PaymentDescription = paymetnDescription;
               
                 _context.msg_ClientOrders.Update(clientOrder);
-
+                    
                 await _context.SaveChangesAsync();
                 return true;
             }
@@ -607,6 +653,24 @@ namespace GoogleAPI.Persistance.Concretes
             }
 
         }
+        public async Task<bool> UpdateClientOrderNebimInfos(string orderNo,string orderNumber, bool isCompleted)
+        {
+            ClientOrder? clientOrder = await _context.msg_ClientOrders.FirstOrDefaultAsync(o => o.OrderNo == orderNo);
+            if (clientOrder != null)
+            {
+                clientOrder.OrderNumber = orderNumber;
+                clientOrder.IsCompleted = true;
+                _context.msg_ClientOrders.Update(clientOrder);
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            else
+            {
+                throw new Exception("Bu Siparişe Ait Kayıt Bulunamadı");
+            }
+
+        }
+
 
         public async Task<bool> AddCustomerAddress(AddCustomerAddress_CM request)
         {

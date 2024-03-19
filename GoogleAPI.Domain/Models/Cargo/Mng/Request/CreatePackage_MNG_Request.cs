@@ -16,4 +16,10 @@ namespace GoogleAPI.Domain.Models.Cargo.Mng.Request
         public Recipient_MNG Recipient { get; set; }
     }
 
+    public class CreatePackage_MNG_RM
+    {
+        public CreatePackage_MNG_Request OrderRequest { get; set; }
+        public CreateBarcode_MNG_Request BarcodeRequest { get; set; }
+    }
+
 }

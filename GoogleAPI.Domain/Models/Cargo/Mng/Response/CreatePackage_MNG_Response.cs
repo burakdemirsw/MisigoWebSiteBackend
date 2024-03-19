@@ -18,13 +18,6 @@ namespace GoogleAPI.Domain.Models.Cargo.Mng.Response
 
         public string ShipperBranchCode { get; set; }
     }
-    public class CreatePackage_MNG_RR
-    {
-
-        public CreatePackage_MNG_Response Response { get; set; }
-        public Request.CreatePackage_MNG_Request Request { get; set; }
-
-    }
 
 
 
